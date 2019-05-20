@@ -57,6 +57,19 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
               .GroupBy ((sc) => sc.SomeId).ExecuteAsync();
 
       }
+      
+#### Why a fluent builder?
+
+The same reason why IQueryable exists. So you could pass this along to other methods, add whatever you want to it and then execute when you are finished.
+	public async Task UpdateAdminData(IUser user)
+	    queryBuilder.Top(20);
+            if(user is IAdmin){
+                ApplyAdminPipes(queryBuilder); 
+	    } else {
+	        ApplyUserPipes(queryBuilder);
+	    }
+	    await queryBuilder.ExecuteUpdateAsync(user);
+       }
     
 #### Road Map
 
