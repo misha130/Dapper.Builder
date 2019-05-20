@@ -30,7 +30,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 
 #### Simple Query
       public async Task<IEnumerable<SomeClass>> GetSomeSimpleStuff () {
-          return _query.Columns (
+          return await _query.Columns (
                   nameof (SomeClass.SomeColumnId),
                   nameof (SomeClass.AnotherColumn))
               .Where (sc => sc.Date < DateTime.Now.AddDays (-5))
@@ -38,7 +38,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
       }
 #### Query with join and sub query on itself
       public async Task<IEnumerable<SomeClass>> GetSomeComplexStuff () {
-          _query.
+          return await _query.
               .SubQuery<SomeOtherClass> (q =>
                   q.Columns (nameof (SomeOtherClass.Id))
                   .Alias ("soc")
