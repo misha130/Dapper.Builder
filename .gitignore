@@ -1,0 +1,12 @@
+*.nupkg
+*.user
+*.suo
+*.exe
+.vs
+.idea
+bin
+obj
+packages
+TestResults
+Coverage
+Coverage.xml
