@@ -17,8 +17,8 @@ namespace Dapper.Builder.Services.DAL.Builder.FilterParser {
             _namingService = namingService;
         }
         protected virtual string parameterBinding => "@";
-        private protected string _alias;
-        private protected Dictionary<Type, string> _parentAliases = new Dictionary<Type, string> ();
+        protected string _alias;
+        protected Dictionary<Type, string> _parentAliases = new Dictionary<Type, string> ();
 
         public void SetAlias (string alias) {
             _alias = alias;
