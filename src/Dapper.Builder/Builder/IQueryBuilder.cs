@@ -10,11 +10,17 @@ using Dapper.Builder.Builder.SortHandler;
 using Dapper.Builder.Services.DAL.Builder.JoinHandler;
 
 namespace Dapper.Builder.Services.DAL.Builder {
+    /// <summary>
+    /// A builder to create a relational database query & execute it.
+    /// </summary>
+    /// <typeparam name="T">The entity that will be used in this query</typeparam>
     public interface IQueryBuilder<T> where T : new () {
-        IQueryBuilder<T> Where (string filter, Dictionary<string, object> parameter);
 
-        IQueryBuilder<T> Where (Expression<Func<T, bool>> condition);
-        IQueryBuilder<T> Where (Expression<Func<T, object>> condition);
+        /// <summary>
+        /// Add a condition to the query 
+        /// </summary>
+        /// <param name="Predicate">An expression that describes the condition</param>
+        IQueryBuilder<T> Where (Expression<Func<T, bool>> predicate);
         IQueryBuilder<T> Where<U> (Expression<Func<T, U, bool>> condition) where U : new ();
 
         IQueryBuilder<T> ParamCount (int count);
@@ -65,6 +71,12 @@ namespace Dapper.Builder.Services.DAL.Builder {
         Task<IEnumerable<T>> ExecuteAsync ();
 
         Task<U> ExecuteSingleAsync<U> ();
+
+        Task<int> ExecuteUpdateAsync (T entity);
+
+        Task<long> ExecuteInsertAsync (T entity);
+
+        Task<int> ExecuteDeleteAsync (T entity);
 
         int GetParamCount ();
         IQueryBuilder<T> GroupBy (params string[] columns);

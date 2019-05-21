@@ -1,9 +1,6 @@
-﻿using Dapper.Builder.Builder;
+﻿using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Dapper.Builder.Tests.Services
 {

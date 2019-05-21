@@ -12,6 +12,7 @@
 // <summary></summary>
 // ***********************************************************************
 using Dapper.Builder.Builder;
+using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using System.Collections.Generic;
 
 namespace Dapper.Builder.Services.DAL.Builder

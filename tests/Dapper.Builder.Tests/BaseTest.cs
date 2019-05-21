@@ -5,21 +5,23 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Dapper.Builder.Extensions.Configuration;
 using System.Data.SqlClient;
+using Dapper.Builder.Core.Configuration;
 
 namespace Dapper.Builder.Tests
 {
     public class BaseTest
     {
-        protected IServiceProvider services =
+        protected IServiceProvider coreServices =
           WebHost.CreateDefaultBuilder()
         .UseStartup<TestStartup>()
                 .Build().Services;
         protected T Resolve<T>()
         {
-            return services.GetService<T>();
+            return coreServices.GetService<T>();
         }
+
+
     }
 
     public class TestStartup
@@ -29,7 +31,7 @@ namespace Dapper.Builder.Tests
         }
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddDapperBuilder(new BuilderConfiguration
+            services.AddDapperBuilder(new CoreBuilderConfiguration
             {
                 DatabaseType = DatabaseType.SQL,
                 DbConnectionFactory = (ser) => new SqlConnection("server=(local)")

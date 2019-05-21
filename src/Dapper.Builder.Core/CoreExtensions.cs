@@ -1,5 +1,4 @@
-﻿using Dapper.Builder.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Dapper.Builder.Services.DAL.Builder;
 using Dapper.Builder.Services.DAL.Builder.FilterParser;
 using Dapper.Builder.Services.DAL.Builder.JoinHandler;
@@ -12,6 +11,8 @@ using Dapper.Builder.Builder.Processes.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System;
+using Dapper.Builder.Core.Configuration;
+using Dapper.Builder.Shared.Interfaces;
 
 namespace Dapper.Builder.Extensions
 {
@@ -19,7 +20,7 @@ namespace Dapper.Builder.Extensions
     {
         public static void AddDapperBuilder(
             this IServiceCollection services,
-            BuilderConfiguration configuration)
+            CoreBuilderConfiguration configuration)
         {
             #region Sub services
             services.AddScoped<IDbConnection>(configuration.DbConnectionFactory);
@@ -46,13 +47,15 @@ namespace Dapper.Builder.Extensions
             services.AddScoped(typeof(IProcessHandler), typeof(ProcessHandler));
             #endregion
             #region Aggregation
-            services.AddScoped((c) => configuration ?? new BuilderConfiguration());
             services.AddScoped(typeof(Lazy<IJoinHandler>));
             services.AddScoped(typeof(Lazy<IServiceProvider>));
             services.AddScoped(typeof(Lazy<ISortHandler>));
             services.AddScoped(typeof(Lazy<IPropertyParser>));
-            services.AddScoped(typeof(IQueryBuilderDependencies<>), typeof(QueryBuilderDependencies<>));
+            services.AddScoped(typeof(IQueryBuilderDependencies<>), typeof(CoreQueryBuilderDependencies<>));
             #endregion
+
+            services.AddScoped<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
+
         }
     }
 }

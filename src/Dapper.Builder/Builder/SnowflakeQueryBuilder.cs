@@ -25,6 +25,7 @@ using System.Text;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper.Builder.Builder;
+using Dapper.Builder.Dependencies_Configuration.Aggregates;
 
 namespace Dapper.Builder.Services.DAL.Builder
 {

@@ -22,13 +22,12 @@ using System.Data;
 using System.Threading.Tasks;
 using System.Reflection;
 using Dapper.Builder.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Builder.NamingStrategyService;
 using Dapper.Builder.Builder.SortHandler;
 using Dapper.Builder.Builder;
-using Dapper;
+using Dapper.Builder.Dependencies_Configuration.Aggregates;
+
 namespace Dapper.Builder.Services.DAL.Builder
 {
     /// <summary>
@@ -113,8 +112,7 @@ namespace Dapper.Builder.Services.DAL.Builder
 
         public virtual IQueryBuilder<T> SubQuery<U>(Func<IQueryBuilder<U>, IQueryBuilder<U>> query, string alias) where U : new()
         {
-            var queryBuilder = dependencies.ServiceProvider.Value
-                .GetRequiredService<IQueryBuilder<U>>();
+            var queryBuilder = dependencies.ResolveService<IQueryBuilder<U>>();
             var result = query(queryBuilder.ParamCount(Options.ParamCount)).GetQueryString();
             ParamCount(result.Count);
             Options.Subqueries.Add($"({result.Query}) as {alias}");
@@ -531,6 +529,25 @@ namespace Dapper.Builder.Services.DAL.Builder
         public int GetParamCount()
         {
             return Options.ParamCount;
+        }
+
+        public async Task<int> ExecuteUpdateAsync(T entity)
+        {
+            var query = GetUpdateString(entity);
+            return await dependencies.Context.ExecuteAsync(query.Query, query.Parameters);
+        }
+
+
+        public async Task<int> ExecuteDeleteAsync(T entity)
+        {
+            var query = GetDeleteString();
+            return await dependencies.Context.ExecuteAsync(query.Query, query.Parameters);
+        }
+
+        public async Task<long> ExecuteInsertAsync(T entity)
+        {
+            var query = GetInsertString(entity);
+            return await dependencies.Context.QueryFirstOrDefaultAsync<long>(query.Query, query.Parameters);
         }
     }
 
