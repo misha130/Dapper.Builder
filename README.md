@@ -12,12 +12,21 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 
 
          services.AddDapperBuilder(
-           new BuilderConfiguration
+           new CoreBuilderConfiguration
             {
               DatabaseType = DatabaseType.SQL,
               DbConnectionFactory = (ser) => new SqlConnection("server=(local)")
             });
             
+
+### Autofac Setup
+
+         builder.RegisterModule(new AutofacBuilderConfiguration() {
+             DatabaseType = DatabaseType.SQL,
+             DbConnectionFactory = (ser) => new SqlConnection("server=(local)")
+        });
+
+        
 ### Usage 
 
 #### Injection

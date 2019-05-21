@@ -13,6 +13,9 @@ using Dapper.Builder.Shared.Interfaces;
 
 namespace Dapper.Builder.Autofac
 {
+    /// <summary>
+    /// Dapper module to be consumed by autofac
+    /// </summary>
     public class DapperBuilderModule : Module
     {
         private readonly AutofacBuilderConfiguration _configuration;
