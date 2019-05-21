@@ -1,25 +1,25 @@
-﻿using System;
+﻿using Dapper.Builder.Builder;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dapper.Builder.Services.DAL.Builder.JoinHandler
-{
-    public class JoinHandler : IJoinHandler
-    {
-        public JoinQuery Produce(string property, string condition, JoinType type)
-        {
-            return new JoinQuery
-            {
-                JoinType = JoinString(type),
-                Table = property,
-                Condition = condition,
+namespace Dapper.Builder.Services.DAL.Builder.JoinHandler {
+    public class JoinHandler : IJoinHandler {
+        public JoinQuery Produce (string property, string condition, JoinType type) {
+            return new JoinQuery {
+                JoinType = JoinString (type),
+                    Table = property,
+                    Condition = condition,
             };
         }
 
-        private string JoinString(JoinType type)
-        {
-            switch (type)
-            {
+        /// <summary>
+        /// Converts type to join string for their relative database
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private string JoinString (JoinType type) {
+            switch (type) {
                 case JoinType.Inner:
                     return "INNER JOIN";
                 case JoinType.Full:
@@ -29,7 +29,7 @@ namespace Dapper.Builder.Services.DAL.Builder.JoinHandler
                 case JoinType.Right:
                     return "RIGHT JOIN";
             }
-            throw new ArgumentException("Unsupported join type");
+            throw new ArgumentException ("Unsupported join type");
         }
     }
 }

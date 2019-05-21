@@ -15,14 +15,14 @@ namespace Dapper.Builder.Services.DAL.Builder.SortHandler
         {
             this.namingStrategy = namingStrategy;
         }
-        public string Produce<T>(SortColumn sort, string alias = null)
+        public string Produce<TEntity>(SortColumn sort, string alias = null) where TEntity : new()
         {
             // have to test that the field exists on the table
-            if (!Validate<T>(sort.Field))
+            if (!Validate<TEntity>(sort.Field))
             {
                 throw new Exception("Invalid Column in Sort");
             }
-            return $"{alias ?? namingStrategy.GetColumnName<T>(sort.Field)} {sort.Dir.ToString()}";
+            return $"{alias ?? namingStrategy.GetColumnName<TEntity>(sort.Field)} {sort.Dir.ToString()}";
         }
 
         private bool Validate<T>(string property)

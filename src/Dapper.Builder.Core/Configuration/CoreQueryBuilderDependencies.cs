@@ -11,6 +11,9 @@ using Dapper.Builder.Shared;
 
 namespace Dapper.Builder.Dependencies_Configuration.Aggregates
 {
+    /// <summary>
+    /// Core implementation for dependencies aggregations
+    /// </summary>
     public class CoreQueryBuilderDependencies<T> : QueryBuilderDependencies<T>, IQueryBuilderDependencies<T> where T : new()
     {
         private Lazy<IServiceProvider> ServiceProvider { get; set; }
@@ -38,6 +41,10 @@ namespace Dapper.Builder.Dependencies_Configuration.Aggregates
             ServiceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Resolves the services using .net core
+        /// </summary>
+        /// <typeparam name="TService">The service that needs to be resolved</typeparam>
         public TService ResolveService<TService>()
         {
             return ServiceProvider.Value.GetRequiredService<TService>();

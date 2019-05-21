@@ -20,9 +20,9 @@ namespace Dapper.Builder.Services.DAL.Builder
     /// <summary>
     /// Class QueryBuilder.
     /// </summary>
-    public class SqlQueryBuilder<T> : QueryBuilder<T> where T : new()
+    public class SqlQueryBuilder<TEntity> : QueryBuilder<TEntity> where TEntity : new()
     {
-        public SqlQueryBuilder(IQueryBuilderDependencies<T> depenedencies) : base(depenedencies)
+        public SqlQueryBuilder(IQueryBuilderDependencies<TEntity> depenedencies) : base(depenedencies)
         {
 
         }

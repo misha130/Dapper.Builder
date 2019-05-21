@@ -23,10 +23,10 @@ namespace Dapper.Builder.Services.DAL.Builder
     /// <summary>
     /// Class QueryBuilder.
     /// </summary>
-    public class PostgreQueryBuilder<T> : QueryBuilder<T> where T : new()
+    public class PostgreQueryBuilder<TEntity> : QueryBuilder<TEntity> where TEntity : new()
     {
         protected override string parameterBinding => ":";
-        public PostgreQueryBuilder(IQueryBuilderDependencies<T> dependencies) : base(dependencies)
+        public PostgreQueryBuilder(IQueryBuilderDependencies<TEntity> dependencies) : base(dependencies)
         {
 
         }
@@ -49,7 +49,7 @@ namespace Dapper.Builder.Services.DAL.Builder
             {
                 if (Options.SelectColumns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc => GetColumnName(sc))));
+                    query.Append(string.Join(",", Options.SelectColumns.Select(sc => dependencies.NamingStrategy.GetColumnName<TEntity>(sc))));
                     query.Append(" ");
                 }
                 else
@@ -65,7 +65,7 @@ namespace Dapper.Builder.Services.DAL.Builder
 
             }
 
-            query.AppendLine($"FROM {GetTableName<T>()} {Options.Alias}");
+            query.AppendLine($"FROM {dependencies.NamingStrategy.GetTableName<TEntity>()} {Options.Alias}");
 
             if (Options.JoinQueries.Any())
             {
@@ -83,7 +83,7 @@ namespace Dapper.Builder.Services.DAL.Builder
             if (Options.GroupingColumns.Any())
             {
                 query.AppendLine(" GROUP BY ");
-                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(GetColumnName))}");
+                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(x => dependencies.NamingStrategy.GetColumnName<TEntity>(x)))}");
 
             }
 
@@ -113,22 +113,22 @@ namespace Dapper.Builder.Services.DAL.Builder
                 Count = Options.ParamCount
             };
         }
-        public override QueryResult GetInsertString(T entity)
+        public override QueryResult GetInsertString(TEntity entity)
         {
             // processes!
             entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
 
             // here should be implemented joins and select on insert
             StringBuilder query = new StringBuilder();
-            query.Append($"INSERT INTO {GetTableName<T>()} ");
-            IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<T>(e => e);
+            query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
+            IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => $"\"{d.ToCamelCase()}\""))})");
 
             query.AppendLine($"VALUES ({string.Join(", ", columns.Select(p => $":{innerCount++}"))})");
             query.Append("RETURNING  Id;");
             Options.ParamCount = Options.Parameters.Count + 1;
-            Options.Parameters.Merge(ToDictionary(entity, ref Options.ParamCount, columns));
+            Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
             {
                 Query = query.ToString(),
@@ -137,17 +137,17 @@ namespace Dapper.Builder.Services.DAL.Builder
             };
         }
 
-        public override QueryResult GetUpdateString(T entity)
+        public override QueryResult GetUpdateString(TEntity entity)
         {
             // processes!
             entity = dependencies.ProcessHandler.RunThroughProcessesForUpdate(entity);
 
             StringBuilder query = new StringBuilder();
-            query.Append($"UPDATE {GetTableName<T>()} ");
+            query.Append($"UPDATE {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             int innerCount = Options.Parameters.Count + 1;
             Options.ParamCount = Options.Parameters.Count + 1;
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns :
-             dependencies.PropertyParser.Value.Parse<T>(e => e);
+             dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             query.AppendLine("SET ");
             query.AppendLine(string.Join(", ", columns.Select(column => $"\"{column.ToCamelCase()}\" = {parameterBinding}{innerCount++}")));
 
@@ -168,7 +168,7 @@ namespace Dapper.Builder.Services.DAL.Builder
                 query.AppendLine(string.Join(" AND ", Options.WhereStrings));
             }
 
-            Options.Parameters.Merge(ToDictionary(entity, ref Options.ParamCount, columns));
+            Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
             {
                 Query = query.ToString(),
@@ -177,7 +177,7 @@ namespace Dapper.Builder.Services.DAL.Builder
             };
         }
 
-        public override IQueryBuilder<T> Columns<U>(params string[] columns)
+        public override IQueryBuilder<TEntity> Columns<U>(params string[] columns)
         {
             Options.SelectColumns.AddRange(columns.Select(col => $"{typeof(U)}.{col}"));
             return this;

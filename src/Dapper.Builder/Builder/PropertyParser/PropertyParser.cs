@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Linq;
 using Dapper.Builder.Attributes;
 using Dapper.Builder.Extensions;
@@ -11,12 +10,12 @@ namespace Dapper.Builder.Services.DAL.Builder.PropertyParser
 {
     public class PropertyParser : IPropertyParser
     {
-        public IEnumerable<string> Parse<T>(Expression<Func<T, object>> expression, bool validate = true) where T :  new()
+        public IEnumerable<string> Parse<TEntity>(Expression<Func<TEntity, object>> expression, bool validate = true) where TEntity : new()
         {
             if (expression == null) yield break;
             if (expression.Body is MemberExpression memExp)
             {
-                if (Validate<T>(memExp.Member.Name))
+                if (Validate<TEntity>(memExp.Member.Name))
                 {
                     yield return memExp.Member.Name;
                 }
@@ -25,14 +24,14 @@ namespace Dapper.Builder.Services.DAL.Builder.PropertyParser
             {
                 if (unarExp.Operand is MemberExpression omemExp)
                 {
-                    if (Validate<T>(omemExp.Member.Name))
+                    if (Validate<TEntity>(omemExp.Member.Name))
                     {
                         yield return omemExp.Member.Name;
                     }
                 }
                 if ((unarExp.Operand) is ParameterExpression paramExp)
                 {
-                    foreach (var name in GetRelevantProperties<T>(paramExp.Type))
+                    foreach (var name in GetRelevantProperties<TEntity>(paramExp.Type))
                     {
                         yield return name;
                     }
@@ -56,11 +55,6 @@ namespace Dapper.Builder.Services.DAL.Builder.PropertyParser
             members = members.Where(member => !string.Equals(member.Name, "id", StringComparison.CurrentCultureIgnoreCase));
             return members
             .Select(member => member.Name);
-        }
-
-        private string ConstructName(MemberInfo member)
-        {
-            return string.Empty;
         }
     }
 }

@@ -1,17 +1,4 @@
-﻿// ***********************************************************************
-// Assembly         : Dapper.Builder
-// Author           : micha
-// Created          : 01-28-2019
-//
-// Last Modified By : micha
-// Last Modified On : 01-28-2019
-// ***********************************************************************
-// <copyright file="IProcess.cs" company="Dapper.Builder">
-//     Copyright (c) . All rights reserved.
-// </copyright>
-// <summary></summary>
-// ***********************************************************************
-namespace Dapper.Builder.Builder.Processes.Interfaces
+﻿namespace Dapper.Builder.Builder.Processes.Interfaces
 {
     /// <summary>
     /// Interface IProcess
@@ -23,6 +10,6 @@ namespace Dapper.Builder.Builder.Processes.Interfaces
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity">The entity.</param>
-        void Process<T>(T entity) where T : new();
+        void Process<TEntity>(TEntity entity) where TEntity : new();
     }
 }

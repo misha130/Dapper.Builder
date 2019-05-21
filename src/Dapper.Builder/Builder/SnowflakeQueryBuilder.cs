@@ -32,9 +32,9 @@ namespace Dapper.Builder.Services.DAL.Builder
     /// <summary>
     /// Class QueryBuilder.
     /// </summary>
-    public class SnowflakeQueryBuilder<T> : QueryBuilder<T> where T : new()
+    public class SnowflakeQueryBuilder<TEntity> : QueryBuilder<TEntity> where TEntity : new()
     {
-        public SnowflakeQueryBuilder(IQueryBuilderDependencies<T> depenedencies) : base(depenedencies)
+        public SnowflakeQueryBuilder(IQueryBuilderDependencies<TEntity> depenedencies) : base(depenedencies)
         {
 
         }

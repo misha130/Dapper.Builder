@@ -1,15 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
 
 namespace Dapper.Builder.Builder.NamingStrategyService
 {
+    /// <summary>
+    /// The strategy how to name columns and tables
+    /// </summary>
     public interface INamingStrategyService
     {
+
+        /// <summary>
+        /// Gets the table name by Type
+        /// </summary>
+        /// <param name="type">The type to get the name from</param>
         string GetTableName(Type type);
+
+        /// <summary>
+        /// Gets the table name by Generic Type
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <returns></returns>
+        string GetTableName<TEntity>() where TEntity : new();
+
+        /// <summary>
+        /// Gets the table name on how it would be called in the database
+        /// </summary>
+        /// <param name="type">The type to get the name from</param>
         string GetTableName(string name);
-        string GetColumnName<T>(string name, string alias = null);
+
+        /// <summary>
+        /// Gets the name of the column
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="alias"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        string GetColumnName<TEntity>(string name, string alias = null) where TEntity : new();
     }
 }

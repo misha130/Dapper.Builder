@@ -16,8 +16,16 @@ using Dapper.Builder.Shared.Interfaces;
 
 namespace Dapper.Builder.Extensions
 {
+    /// <summary>
+    /// Adds dapper builder support to core DI
+    /// </summary>
     public static class CoreExtensions
     {
+        /// <summary>
+        /// Sets up dapper builder for asp core DI
+        /// </summary>
+        /// <param name="services">The currently used service collection in Startup</param>
+        /// <param name="configuration">Configuration to be used in the setup</param>
         public static void AddDapperBuilder(
             this IServiceCollection services,
             CoreBuilderConfiguration configuration)

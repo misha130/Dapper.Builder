@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Dapper.Builder.Autofac.Configuration;
+using Dapper.Builder.Builder;
 using Dapper.Builder.Builder.NamingStrategyService;
 using Dapper.Builder.Builder.Processes.Configuration;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
@@ -31,7 +32,7 @@ namespace Dapper.Builder.Autofac
             {
                 case DatabaseType.SQL:
                 default:
-                    builder.RegisterType(typeof(QueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
+                    builder.RegisterType(typeof(SqlQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
                     builder.RegisterType(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
                     break;
                 case DatabaseType.PostgreSql:

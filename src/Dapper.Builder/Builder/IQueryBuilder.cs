@@ -9,77 +9,241 @@ using Dapper.Builder.Builder.Processes.Configuration;
 using Dapper.Builder.Builder.SortHandler;
 using Dapper.Builder.Services.DAL.Builder.JoinHandler;
 
-namespace Dapper.Builder.Services.DAL.Builder {
+namespace Dapper.Builder.Builder
+{
     /// <summary>
     /// A builder to create a relational database query & execute it.
     /// </summary>
-    /// <typeparam name="T">The entity that will be used in this query</typeparam>
-    public interface IQueryBuilder<T> where T : new () {
+    /// <TEntityEntityypeparam name="TEntity">The entity that will be used in this query</typeparam>
+    public interface IQueryBuilder<TEntity> where TEntity : new()
+    {
 
         /// <summary>
-        /// Add a condition to the query 
+        /// Adds a where condition to the query on the main entity
         /// </summary>
-        /// <param name="Predicate">An expression that describes the condition</param>
-        IQueryBuilder<T> Where (Expression<Func<T, bool>> predicate);
-        IQueryBuilder<T> Where<U> (Expression<Func<T, U, bool>> condition) where U : new ();
+        /// <param name="predicate">The expression that represents the condition</param>
+        IQueryBuilder<TEntity> Where(Expression<Func<TEntity, bool>> predicate);
 
-        IQueryBuilder<T> ParamCount (int count);
+        /// <summary>
+        /// Adds a where condition to the query on not the main entity
+        /// </summary>
+        /// <typeparam name="UEntity">Some entity that was joined</typeparam>
+        /// <param name="predicate">The expression that represents the condition</param>
+        IQueryBuilder<TEntity> Where<UEntity>(Expression<Func<TEntity, UEntity, bool>> predicate) where UEntity : new();
 
-        IQueryBuilder<T> Distinct ();
 
-        IQueryBuilder<T> Alias (string alias);
+        /// <summary>
+        /// Tells to add a distinct to the query
+        /// </summary>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Distinct();
 
-        IQueryBuilder<T> ParentAlias<U> (string alias) where U : new ();
+        /// <summary>
+        /// Adds an alias on the main query entity
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Alias(string alias);
 
-        IQueryBuilder<T> Columns (params string[] columns);
+        /// <summary>
+        /// Adds an alias on the parent/joined entity
+        /// </summary>
 
-        IQueryBuilder<T> Columns (Expression<Func<T, object>> columns);
-        IQueryBuilder<T> Columns<U> (params string[] columns) where U : new ();
-        IQueryBuilder<T> SubQuery<U> (Func<IQueryBuilder<U>, IQueryBuilder<U>> query, string alias) where U : new ();
+        IQueryBuilder<TEntity> ParentAlias<UEntity>(string alias) where UEntity : new();
 
-        IQueryBuilder<T> ProcessConfig (Action<IProcessConfig> config);
+        /// <summary>
+        /// The columns that should be in the query
+        /// </summary>
+        IQueryBuilder<TEntity> Columns(params string[] columns);
 
-        IQueryBuilder<T> Count ();
-        IQueryBuilder<T> Json ();
-        IQueryBuilder<T> GroupBy (Expression<Func<T, object>> columns);
+        /// <summary>
+        /// An expression that represents the columns, usually an anonymous object
+        /// </summary>
+        /// <param name="columns"></param>
+        IQueryBuilder<TEntity> Columns(Expression<Func<TEntity, object>> columns);
 
-        IQueryBuilder<T> SortAscending (Expression<Func<T, object>> sortProperty);
-        IQueryBuilder<T> SortDescending (Expression<Func<T, object>> sortProperty);
+        /// <summary>
+        /// The columns that should be in the query, not from the main entity
+        /// </summary>
+        /// <typeparam name="UEntity">The entity to take the name from</typeparam>
+        IQueryBuilder<TEntity> Columns<UEntity>(params string[] columns) where UEntity : new();
+        
+        /// <summary>
+        /// Creates a sub query in the query
+        /// </summary>
+        /// <typeparam name="UEntity">The main sub query entity</typeparam>
+        /// <param name="query">A query builder that represents the sub query</param>
+        /// <param name="alias">The name of the column for the sub query</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> SubQuery<UEntity>(Func<IQueryBuilder<UEntity>, IQueryBuilder<UEntity>> query, string alias)
+        where UEntity : new();
 
-        IQueryBuilder<T> SortAscending<U> (Expression<Func<U, object>> sortProperty) where U : new ();
-        IQueryBuilder<T> SortDescending<U> (Expression<Func<U, object>> sortProperty) where U : new ();
-        IQueryBuilder<T> Sort (params SortColumn[] columns);
+        /// <summary>
+        /// Processes configuration
+        /// </summary>
+        /// <param name="config">The services for configurating processes</param>
+        IQueryBuilder<TEntity> ProcessConfig(Action<IProcessConfig> config);
 
-        IQueryBuilder<T> Top (int? top);
+        /// <summary>
+        /// If this is stated the query will only return the number of rows.
+        /// It does not add another count column to the previous columns
+        /// </summary>
+        IQueryBuilder<TEntity> Count();
 
-        IQueryBuilder<T> Skip (int? skip);
+        /// <summary>
+        /// Whether the query should go through a json serialization in the database and then deserialization
+        /// Used for getting multiple rows inside of subqueries
+        /// </summary>
+        IQueryBuilder<TEntity> Json();
 
-        IQueryBuilder<T> Join<U> (Expression<Func<T, U, bool>> foreignKeyProperty, JoinType type = JoinType.Inner) where U : new ();
+        /// <summary>
+        /// Creates a group part of the query
+        /// </summary>
+        /// <param name="columns">The object that will be translated into a columns</param>
+        IQueryBuilder<TEntity> GroupBy(Expression<Func<TEntity, object>> columns);
 
-        IQueryBuilder<T> Join<U, W> (Expression<Func<U, W, bool>> foreignKeyProperty, JoinType type = JoinType.Inner) where U : new () where W : new ();
+        /// <summary>
+        /// Creates a group part of the query
+        /// </summary>
+        /// <param name="columns">Names of columns that will be used</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> GroupBy(params string[] columns);
 
-        IQueryBuilder<T> Map (Func<IDbConnection, string, object, Task<IEnumerable<T>>> action);
+        /// <summary>
+        /// Adds an order by asc to the query 
+        /// </summary>
+        /// <param name="sortProperty">Expression that determines the column for sort</param>
+        IQueryBuilder<TEntity> SortAscending(Expression<Func<TEntity, object>> sortProperty);
 
-        QueryResult GetQueryString ();
-        QueryResult GetInsertString (T entity);
-        QueryResult GetInsertString (IEnumerable<T> entity);
-        QueryResult GetUpdateString (T entity);
-        QueryResult GetDeleteString ();
+        /// <summary>
+        /// Adds an order by desc to the query 
+        /// </summary>
+        /// <param name="sortProperty">Expression that determines the column for sort</param>
+        IQueryBuilder<TEntity> SortDescending(Expression<Func<TEntity, object>> sortProperty);
 
-        Task<T> ExecuteSingleAsync ();
+        /// <summary>
+        /// Adds an order by asc to the query for not the main entity
+        /// </summary>
+        /// <param name="sortProperty">Expression that determines the column for sort</param>
+        IQueryBuilder<TEntity> SortAscending<UEntity>(Expression<Func<UEntity, object>> sortProperty) where UEntity : new();
 
-        Task<IEnumerable<T>> ExecuteAsync ();
+        /// <summary>
+        /// Adds an order by desc to the query for not the main entity
+        /// </summary>
+        /// <param name="sortProperty">Expression that determines the column for sort</param>
+        IQueryBuilder<TEntity> SortDescending<UEntity>(Expression<Func<UEntity, object>> sortProperty) where UEntity : new();
 
-        Task<U> ExecuteSingleAsync<U> ();
+        /// <summary>
+        /// Adds order by parts to the query 
+        /// </summary>
+        /// <param name="columns">The sort data that will be used</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Sort(params SortColumn[] columns);
 
-        Task<int> ExecuteUpdateAsync (T entity);
+        /// <summary>
+        /// Determines how many rows to get
+        /// </summary>
+        /// <param name="top">Number of rows to get</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Top(int? top);
 
-        Task<long> ExecuteInsertAsync (T entity);
+        /// <summary>
+        /// Determines how many rows to skip
+        /// </summary>
+        /// <param name="skip">Number of rows to skip</param>
+        /// <returns></returns>
 
-        Task<int> ExecuteDeleteAsync (T entity);
+        IQueryBuilder<TEntity> Skip(int? skip);
 
-        int GetParamCount ();
-        IQueryBuilder<T> GroupBy (params string[] columns);
+        /// <summary>
+        /// Creates a join query part
+        /// </summary>
+        /// <typeparam name="UEntity">The entity to join with</typeparam>
+        /// <param name="predicate">The condition for the join</param>
+        /// <param name="type">The type of join</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Join<UEntity>(Expression<Func<TEntity, UEntity, bool>> predicate, JoinType type = JoinType.Inner)
+        where UEntity : new();
 
+        /// <summary>
+        /// Creates a join query part
+        /// </summary>
+        /// <typeparam name="UEntity">The entity to join with</typeparam>
+        /// <typeparam name="WEntity">The entity to join with</typeparam>
+        /// <param name="predicate">The condition for the join</param>
+        /// <param name="type">The type of join</param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Join<UEntity, WEntity>(Expression<Func<UEntity, WEntity, bool>> predicate, JoinType type = JoinType.Inner)
+        where UEntity : new() where WEntity : new();
+
+        /// <summary>
+        /// Utilizes the mapping ability of dapper after query has been executed.
+        /// Enables the developer to execute the query themselves
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Map(Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> action);
+
+        /// <summary>
+        /// Returns the select query
+        /// </summary>
+        QueryResult GetQueryString();
+
+        /// <summary>
+        /// Returns the insert query
+        /// </summary>
+        QueryResult GetInsertString(TEntity entity);
+
+        /// <summary>
+        /// Returns the insert query
+        /// </summary>
+        QueryResult GetInsertString(IEnumerable<TEntity> entity);
+
+        /// <summary>
+        /// Returns the update query
+        /// </summary>
+        QueryResult GetUpdateString(TEntity entity);
+
+        /// <summary>
+        /// Returns the delete query
+        /// </summary>
+        QueryResult GetDeleteString();
+
+        /// <summary>
+        /// Executes a query to the database that returns only one row
+        /// </summary>
+        Task<TEntity> ExecuteSingleAsync();
+
+        /// <summary>
+        /// Executes a query to the database
+        /// </summary>
+        Task<IEnumerable<TEntity>> ExecuteAsync();
+
+        /// <summary>
+        /// Executes a query to the database that returns only one row
+        /// Maybe return numbers
+        /// </summary>
+        Task<UEntity> ExecuteSingleAsync<UEntity>();
+
+
+        /// <summary>
+        /// Executes updated query
+        /// </summary>
+        /// <param name="entity">The entity to update</param>
+        /// <returns>Number of rows affected</returns>
+        Task<int> ExecuteUpdateAsync(TEntity entity);
+
+        /// <summary>
+        /// Executes delete query
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
+        Task<int> ExecuteDeleteAsync();
+
+        /// <summary>
+        /// Executes insert query
+        /// </summary>
+        /// <returns>Returns id of inserted entity</returns>
+        Task<long> ExecuteInsertAsync(TEntity entity);
     }
+
 }
