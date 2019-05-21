@@ -46,13 +46,13 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
                   .ParentAlias<SomeClass> ("sc")
                   .Where<SomeClass> ((sc, soc) => sc.SomeId == soc.SomeOtherId)
                   , "SubQueryAlias1")
-              .SubQuery<FuelPricing> (q =>
+              .SubQuery<SomeOtherClass> (q =>
                   q.Top (1)
                   .Columns (nameof (SomeOtherClass.Amount))
                   .Alias ("soc")
                   .ParentAlias<SomeClass> ("sc")
                    , "SubQueryAlias2")
-              .Alias ("fp")
+              .Alias ("sc")
               .Join<SomeOtherOtherClass> (((sc, sooc) => sooc.SomeClassId == sc.Id))
               .GroupBy ((sc) => sc.SomeId).ExecuteAsync();
 
