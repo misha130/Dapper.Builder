@@ -3,9 +3,20 @@
 The library offers a fluent builder way to create queries with Dapper.
 This includes joins, sub queries with multiple database support (SQL, Postgre, Snowflake, Sqlite) 
 
+[![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Autofac.svg)](https://www.nuget.org/packages/Dapper.Builder.Autofac)
+[![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Core.svg)](https://www.nuget.org/packages/Dapper.Builder.Core)
+
+
 ## Installation
 
-    Currently none available, maybe in the future
+Autofac 
+
+    dotnet add package Dapper.Builder.Autofac
+
+Core 
+
+    dotnet add package Dapper.Builder.Core
+
     
         
 ### .Net Core Setup
