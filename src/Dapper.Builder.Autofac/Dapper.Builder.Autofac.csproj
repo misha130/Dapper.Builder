@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.2</Version>
+    <Authors>Michael Tarnortusky</Authors>
+    <Company />
+    <Product>Dapper.Builder</Product>
+    <Description>Dapper Builder support for Autofac</Description>
+    <Copyright />
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/misha130/Dapper.Builder</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/misha130/Dapper.Builder</PackageProjectUrl>
+    <PackageTags>Dapper Builder Autofac</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +21,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dapper.Builder\Dapper.Builder.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <Authors>Michael Tarnorutksy</Authors>
+    <Company />
+    <Product>Dapper.Builder</Product>
+    <Description>Dapper Builder for .NET Core</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/misha130/Dapper.Builder</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/misha130/Dapper.Builder</RepositoryUrl>
+    <PackageTags>Dapper Builder Core</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +20,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dapper.Builder\Dapper.Builder.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
