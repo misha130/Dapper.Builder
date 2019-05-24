@@ -20,14 +20,17 @@ namespace Dapper.Builder.Autofac
     public class DapperBuilderModule : Module
     {
         private readonly AutofacBuilderConfiguration _configuration;
+      
         public DapperBuilderModule(AutofacBuilderConfiguration configuration)
         {
             _configuration = configuration;
         }
+
         protected override void Load(ContainerBuilder builder)
         {
-            #region Sub services
+            #region Internal Services
             builder.Register(_configuration.DbConnectionFactory).InstancePerLifetimeScope();
+            
             switch (_configuration?.DatabaseType)
             {
                 case DatabaseType.SQL:
@@ -50,11 +53,14 @@ namespace Dapper.Builder.Autofac
             builder.RegisterType<NamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
             builder.RegisterType<ProcessHandler>().As<IProcessHandler>().InstancePerLifetimeScope();
             #endregion
+
             #region Aggregation
             builder.RegisterType(typeof(AutofacQueryBuilderDependencies<>)).As(typeof(IQueryBuilderDependencies<>));
             #endregion
 
-            builder.Register((c) => _configuration ?? new AutofacBuilderConfiguration()).As<IBuilderConfiguration>();
+            builder.Register((c) => 
+                _configuration ?? new AutofacBuilderConfiguration()
+            ).As<IBuilderConfiguration>();
 
         }
     }
