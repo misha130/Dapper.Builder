@@ -15,7 +15,9 @@ namespace Dapper.Builder.Dependencies_Configuration.Aggregates {
     /// Autofac implementation for dependencies aggregations
     /// </summary>
     public class AutofacQueryBuilderDependencies<T> : QueryBuilderDependencies<T>, IQueryBuilderDependencies<T> where T : new () {
+       
         private Lazy<ILifetimeScope> Scope { get; set; }
+      
         public AutofacQueryBuilderDependencies (
             IProcessHandler processHandler,
             IDbConnection context,
