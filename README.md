@@ -32,10 +32,10 @@ Core
 
 ### Autofac Setup
 
-         builder.RegisterModule(new AutofacBuilderConfiguration() {
+         builder.RegisterModule(new DapperBuilderModule(new AutofacBuilderConfiguration() {
              DatabaseType = DatabaseType.SQL,
              DbConnectionFactory = (ser) => new SqlConnection("server=(local)")
-        });
+        }));
 
         
 ### Usage 
