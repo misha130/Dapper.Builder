@@ -28,16 +28,16 @@ namespace Dapper.Builder.Autofac
             {
                 case DatabaseType.SQL:
                 default:
-                    builder.RegisterType(typeof(SqlQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
-                    builder.RegisterType(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(SqlQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
                     break;
                 case DatabaseType.PostgreSql:
-                    builder.RegisterType(typeof(PostgreQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
-                    builder.RegisterType(typeof(PostgreFilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(PostgreQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(PostgreFilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
                     break;
                 case DatabaseType.Snowflake:
-                    builder.RegisterType(typeof(SnowflakeQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
-                    builder.RegisterType(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(SnowflakeQueryBuilder<>)).As(typeof(IQueryBuilder<>)).InstancePerDependency();
+                    builder.RegisterGeneric(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
                     break;
             }
             builder.RegisterType<JoinHandler>().As<IJoinHandler>().InstancePerLifetimeScope();
@@ -48,7 +48,7 @@ namespace Dapper.Builder.Autofac
             #endregion
 
             #region Aggregation
-            builder.RegisterType(typeof(AutofacQueryBuilderDependencies<>)).As(typeof(IQueryBuilderDependencies<>));
+            builder.RegisterGeneric(typeof(AutofacQueryBuilderDependencies<>)).As(typeof(IQueryBuilderDependencies<>));
             #endregion
 
             #region Processes
