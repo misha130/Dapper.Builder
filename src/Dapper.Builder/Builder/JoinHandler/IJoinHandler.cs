@@ -1,6 +1,5 @@
-﻿using Dapper.Builder.Builder;
-
-namespace Dapper.Builder.Services.DAL.Builder.JoinHandler
+﻿
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Service that creates joins strings

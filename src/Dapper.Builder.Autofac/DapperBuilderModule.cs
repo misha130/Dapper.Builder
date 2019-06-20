@@ -1,16 +1,9 @@
 ﻿using Autofac;
 using Dapper.Builder.Autofac.Configuration;
-using Dapper.Builder.Builder;
-using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder.Processes.Configuration;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Dapper.Builder.Extensions;
-using Dapper.Builder.Services.DAL.Builder;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
-using Dapper.Builder.Shared.Interfaces;
+using Dapper.Builder.Processes;
+using Dapper.Builder.Services;
 
 namespace Dapper.Builder.Autofac
 {
@@ -54,6 +47,23 @@ namespace Dapper.Builder.Autofac
             builder.RegisterType(typeof(AutofacQueryBuilderDependencies<>)).As(typeof(IQueryBuilderDependencies<>));
             #endregion
 
+            #region Processes
+            var proccesAndPipes = _configuration.GetProcessAndPipes();
+            foreach (var selectPipe in proccesAndPipes.SelectPipes)
+            {
+                builder.RegisterType(selectPipe).As<ISelectPipe>();
+            }
+
+            foreach (var insertProcess in proccesAndPipes.InsertProcesses)
+            {
+                builder.RegisterType(insertProcess).As<IInsertProcess>();
+            }
+
+            foreach (var updateProcess in proccesAndPipes.UpdateProcesses)
+            {
+                builder.RegisterType(updateProcess).As<IUpdateProcess>();
+            }
+            #endregion
             builder.Register((c) => _configuration ?? new AutofacBuilderConfiguration()).As<IBuilderConfiguration>();
 
         }

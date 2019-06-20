@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dapper.Builder.Builder.Processes.Configuration
+namespace Dapper.Builder.Processes
 {
     /// <summary>
     /// Process Configuration

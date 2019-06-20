@@ -1,4 +1,4 @@
-﻿namespace Dapper.Builder.Builder.Processes.Interfaces
+﻿namespace Dapper.Builder.Processes
 {
     /// <summary>
     /// Interface IProcess

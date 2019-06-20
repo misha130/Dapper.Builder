@@ -1,15 +1,12 @@
-﻿using System;
+﻿using Dapper.Builder.Processes;
+using Dapper.Builder.Services;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
-using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Builder.SortHandler;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
 
-namespace Dapper.Builder.Builder
+namespace Dapper.Builder
 {
     /// <summary>
     /// A builder to create a relational database query & execute it.

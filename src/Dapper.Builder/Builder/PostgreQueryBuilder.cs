@@ -11,14 +11,13 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
-using Dapper.Builder.Builder;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Dapper.Builder.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Dapper.Builder.Services.DAL.Builder
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Class QueryBuilder.

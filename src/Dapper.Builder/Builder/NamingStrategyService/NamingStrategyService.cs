@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 
-namespace Dapper.Builder.Builder.NamingStrategyService
+namespace Dapper.Builder.Services
 {
     public class NamingStrategyService : INamingStrategyService
     {

@@ -11,23 +11,9 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Collections;
-using Dapper;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using System.Text;
-using System.Data;
-using System.Threading.Tasks;
-using Dapper.Builder.Builder;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
 
-namespace Dapper.Builder.Services.DAL.Builder
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Class QueryBuilder.

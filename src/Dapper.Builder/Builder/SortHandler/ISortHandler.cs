@@ -1,6 +1,5 @@
-﻿using Dapper.Builder.Builder.SortHandler;
-
-namespace Dapper.Builder.Services.DAL.Builder.SortHandler
+﻿
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Services that creates order by queries

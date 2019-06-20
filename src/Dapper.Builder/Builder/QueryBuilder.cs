@@ -2,19 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Dapper;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
 using System.Text;
 using System.Data;
 using System.Threading.Tasks;
-using System.Reflection;
 using Dapper.Builder.Extensions;
 using Newtonsoft.Json;
-using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Builder.SortHandler;
+using Dapper.Builder.Services;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
+using Dapper.Builder.Processes;
 
-namespace Dapper.Builder.Builder
+namespace Dapper.Builder
 {
     /// <summary>
     /// Class QueryBuilder.

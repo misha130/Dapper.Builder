@@ -1,23 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dapper.Builder.Builder.Processes.Interfaces;
-using Dapper.Builder.Services.DAL.Builder;
 
-namespace Dapper.Builder.Builder.Processes.Configuration
+namespace Dapper.Builder.Processes
 {
     public class ProcessHandler : IProcessConfig, IProcessHandler
     {
         private List<Type> _excludedTypes = new List<Type>();
 
-        private readonly Lazy<IEnumerable<IUpdateProcess>> _updateProcesses;
-        private readonly Lazy<IEnumerable<IInsertProcess>> _insertProcesses;
-        private readonly Lazy<IEnumerable<ISelectPipe>> _selectPipes;
+        private readonly IEnumerable<IUpdateProcess> _updateProcesses;
+        private readonly IEnumerable<IInsertProcess> _insertProcesses;
+        private readonly IEnumerable<ISelectPipe> _selectPipes;
 
         public ProcessHandler(
-            Lazy<IEnumerable<ISelectPipe>> selectPipes = null,
-            Lazy<IEnumerable<IInsertProcess>> insertProcesses = null,
-            Lazy<IEnumerable<IUpdateProcess>> updateProcesses = null
+            IEnumerable<ISelectPipe> selectPipes = null,
+            IEnumerable<IInsertProcess> insertProcesses = null,
+            IEnumerable<IUpdateProcess> updateProcesses = null
             )
         {
             _selectPipes = selectPipes;
@@ -39,7 +37,7 @@ namespace Dapper.Builder.Builder.Processes.Configuration
         public void PipeThrough<T>(IQueryBuilder<T> queryBuilder) where T : new()
         {
             if (_selectPipes == null) return;
-            foreach (var pipe in _selectPipes.Value)
+            foreach (var pipe in _selectPipes)
             {
                 if (!IsExcluded(pipe.GetType()))
                 {
@@ -51,7 +49,7 @@ namespace Dapper.Builder.Builder.Processes.Configuration
         public T RunThroughProcessesForUpdate<T>(T entity) where T : new()
         {
             if (_updateProcesses == null) return entity;
-            foreach (var process in _updateProcesses.Value)
+            foreach (var process in _updateProcesses)
             {
                 if (!IsExcluded(process.GetType()))
                 {
@@ -63,7 +61,7 @@ namespace Dapper.Builder.Builder.Processes.Configuration
         public T RunThroughProcessesForInsert<T>(T entity) where T : new()
         {
             if (_insertProcesses == null) return entity;
-            foreach (var process in _insertProcesses.Value)
+            foreach (var process in _insertProcesses)
             {
                 if (!IsExcluded(process.GetType()))
                 {

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Dapper.Builder.Builder
+﻿
+namespace Dapper.Builder
 {
     public interface IInternalQueryBuilder
     {

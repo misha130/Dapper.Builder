@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Dapper.Builder.Services.DAL.Builder.JoinHandler
+﻿namespace Dapper.Builder.Services
 {
     public enum JoinType
     {

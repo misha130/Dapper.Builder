@@ -6,7 +6,7 @@ using System.Linq;
 using Dapper.Builder.Attributes;
 using Dapper.Builder.Extensions;
 
-namespace Dapper.Builder.Services.DAL.Builder.PropertyParser
+namespace Dapper.Builder.Services
 {
     public class PropertyParser : IPropertyParser
     {

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder.SortHandler;
 using FastMember;
 
-namespace Dapper.Builder.Services.DAL.Builder.SortHandler
+namespace Dapper.Builder.Services
 {
     public class SortHandler : ISortHandler
     {

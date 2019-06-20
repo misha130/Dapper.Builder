@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Data;
 using Autofac;
-using Dapper.Builder.Builder;
-using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
-using Dapper.Builder.Shared;
+using Dapper.Builder.Processes;
+using Dapper.Builder.Services;
 
 namespace Dapper.Builder.Dependencies_Configuration.Aggregates {
     /// <summary>

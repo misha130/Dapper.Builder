@@ -1,5 +1,5 @@
 ﻿
-namespace Dapper.Builder.Builder.SortHandler
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Defines a sorting query

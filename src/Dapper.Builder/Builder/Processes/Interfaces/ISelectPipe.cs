@@ -1,4 +1,4 @@
-﻿namespace Dapper.Builder.Builder.Processes.Interfaces
+﻿namespace Dapper.Builder.Processes
 {
     /// <summary>
     /// Classes that implement this interface are added to the select pipes collection

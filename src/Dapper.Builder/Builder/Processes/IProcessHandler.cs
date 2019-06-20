@@ -1,6 +1,5 @@
-﻿using Dapper.Builder.Services.DAL.Builder;
-
-namespace Dapper.Builder.Builder.Processes.Configuration
+﻿
+namespace Dapper.Builder.Processes
 {
     /// <summary>
     /// Process Handling Service that runs the pipes and processes

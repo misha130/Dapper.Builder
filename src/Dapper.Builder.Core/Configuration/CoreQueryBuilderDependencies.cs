@@ -1,13 +1,8 @@
-﻿using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
-using System;
+﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
-using Dapper.Builder.Shared;
+using Dapper.Builder.Services;
+using Dapper.Builder.Processes;
 
 namespace Dapper.Builder.Dependencies_Configuration.Aggregates
 {

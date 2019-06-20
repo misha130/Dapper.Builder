@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
-namespace Dapper.Builder.Services.DAL.Builder.PropertyParser
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// Services that parses objects to column names

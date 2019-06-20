@@ -1,18 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Dapper.Builder.Services.DAL.Builder;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
-using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder;
 using Dapper.Builder.Dependencies_Configuration.Aggregates;
-using Dapper.Builder.Builder.Processes.Configuration;
 using System.Data;
-using System.Data.SqlClient;
 using System;
 using Dapper.Builder.Core.Configuration;
-using Dapper.Builder.Shared.Interfaces;
+using Dapper.Builder.Services;
+using Dapper.Builder.Processes;
 
 namespace Dapper.Builder.Extensions
 {
@@ -62,8 +54,25 @@ namespace Dapper.Builder.Extensions
             services.AddScoped(typeof(IQueryBuilderDependencies<>), typeof(CoreQueryBuilderDependencies<>));
             #endregion
 
-            services.AddScoped<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
+            #region Processes
+            var proccesAndPipes = configuration.GetProcessAndPipes();
+            foreach (var selectPipe in proccesAndPipes.SelectPipes)
+            {
+                services.AddTransient(typeof(ISelectPipe), selectPipe);
+            }
 
+            foreach (var insertProcess in proccesAndPipes.InsertProcesses)
+            {
+                services.AddTransient(typeof(IInsertProcess), insertProcess);
+            }
+
+            foreach (var updateProcess in proccesAndPipes.UpdateProcesses)
+            {
+                services.AddTransient(typeof(IUpdateProcess), updateProcess);
+            }
+            #endregion
+            services.AddScoped<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
         }
+
     }
 }

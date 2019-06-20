@@ -1,4 +1,4 @@
-namespace Dapper.Builder.Extensions
+namespace Dapper.Builder
 {
     public enum DatabaseType
     {

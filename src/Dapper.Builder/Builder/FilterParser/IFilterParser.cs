@@ -1,8 +1,7 @@
-﻿using Dapper.Builder.Builder;
-using System;
+﻿using System;
 using System.Linq.Expressions;
 
-namespace Dapper.Builder.Services.DAL.Builder.FilterParser {
+namespace Dapper.Builder.Services {
     /// <summary>
     /// Class Responsible for parsing condition
     /// </summary>

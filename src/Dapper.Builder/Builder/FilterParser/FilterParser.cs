@@ -6,10 +6,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Dapper.Builder.Builder;
-using Dapper.Builder.Builder.NamingStrategyService;
 
-namespace Dapper.Builder.Services.DAL.Builder.FilterParser {
+namespace Dapper.Builder.Services {
     public class FilterParser<TEntity> : IFilterParser<TEntity> where TEntity : new () {
 
         protected INamingStrategyService _namingService;

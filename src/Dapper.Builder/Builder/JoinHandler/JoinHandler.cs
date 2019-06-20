@@ -1,9 +1,6 @@
-﻿using Dapper.Builder.Builder;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
-namespace Dapper.Builder.Services.DAL.Builder.JoinHandler {
+namespace Dapper.Builder.Services {
     public class JoinHandler : IJoinHandler {
         public JoinQuery Produce (string property, string condition, JoinType type) {
             return new JoinQuery {

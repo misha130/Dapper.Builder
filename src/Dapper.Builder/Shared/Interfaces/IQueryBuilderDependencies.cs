@@ -1,9 +1,5 @@
-﻿using Dapper.Builder.Builder.NamingStrategyService;
-using Dapper.Builder.Builder.Processes.Configuration;
-using Dapper.Builder.Services.DAL.Builder.FilterParser;
-using Dapper.Builder.Services.DAL.Builder.JoinHandler;
-using Dapper.Builder.Services.DAL.Builder.PropertyParser;
-using Dapper.Builder.Services.DAL.Builder.SortHandler;
+﻿using Dapper.Builder.Processes;
+using Dapper.Builder.Services;
 using System;
 using System.Data;
 

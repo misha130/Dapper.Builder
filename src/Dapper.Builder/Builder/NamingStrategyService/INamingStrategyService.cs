@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dapper.Builder.Builder.NamingStrategyService
+namespace Dapper.Builder.Services
 {
     /// <summary>
     /// The strategy how to name columns and tables

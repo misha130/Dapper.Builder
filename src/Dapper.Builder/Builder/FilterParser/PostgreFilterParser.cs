@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Dapper.Builder.Builder;
-using Dapper.Builder.Builder.NamingStrategyService;
 
-namespace Dapper.Builder.Services.DAL.Builder.FilterParser {
+namespace Dapper.Builder.Services {
     public class PostgreFilterParser<TEntity> : FilterParser<TEntity> where TEntity : new () {
 
         public PostgreFilterParser (INamingStrategyService namingService) : base (namingService) {
