@@ -11,7 +11,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 
 Autofac 
 
-    Install-Package Dapper.Builder.Autofac -Version 0.0.2
+    Install-Package Dapper.Builder.Autofac
 
 Core 
 
