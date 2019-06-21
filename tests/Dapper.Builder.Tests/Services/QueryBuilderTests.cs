@@ -35,6 +35,17 @@ namespace Dapper.Builder.Tests.Services
         }
 
         [TestMethod]
+        public void QueryWithEqualAlwaysTrue()
+        {
+            var queryString = queryBuilder.Where((c) => 1 == 1).GetQueryString();
+            Assert.AreEqual(
+              string.Compare("SELECT * FROM [Users] WHERE (@1 = 1)",
+              queryString.Query,
+              CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+              , 0);
+        }
+
+        [TestMethod]
         public void QuerySingleColumnById()
         {
             var queryString = queryBuilder.Where(tc => tc.Id == 1).Columns(tc => tc.Id).GetQueryString();
