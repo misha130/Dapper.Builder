@@ -548,6 +548,6 @@ namespace Dapper.Builder
         public string Table { get; set; }
         public string Condition { get; set; }
         public string JoinType { get; set; }
-        public string ToString() => $" {JoinType} {Table} ON {Condition}";
+        public override string ToString() => $" {JoinType} {Table} ON {Condition}";
     }
 }
