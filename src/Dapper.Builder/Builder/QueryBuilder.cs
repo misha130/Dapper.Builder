@@ -5,11 +5,10 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Data;
 using System.Threading.Tasks;
-using Dapper.Builder.Extensions;
 using Newtonsoft.Json;
 using Dapper.Builder.Services;
-using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Dapper.Builder.Processes;
+using Dapper.Builder.Extensions;
 
 namespace Dapper.Builder
 {

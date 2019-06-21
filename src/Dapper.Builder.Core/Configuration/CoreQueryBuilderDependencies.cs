@@ -4,7 +4,7 @@ using System.Data;
 using Dapper.Builder.Services;
 using Dapper.Builder.Processes;
 
-namespace Dapper.Builder.Dependencies_Configuration.Aggregates
+namespace Dapper.Builder.Core
 {
     /// <summary>
     /// Core implementation for dependencies aggregations

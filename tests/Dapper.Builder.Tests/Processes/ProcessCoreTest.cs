@@ -1,5 +1,4 @@
-﻿using Dapper.Builder.Core.Configuration;
-using Dapper.Builder.Extensions;
+﻿using Dapper.Builder.Core;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

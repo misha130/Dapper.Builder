@@ -11,7 +11,6 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
-using Dapper.Builder.Dependencies_Configuration.Aggregates;
 
 namespace Dapper.Builder.Services
 {

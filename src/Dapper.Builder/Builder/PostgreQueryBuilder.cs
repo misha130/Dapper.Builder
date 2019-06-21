@@ -11,7 +11,6 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
-using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Dapper.Builder.Extensions;
 using System.Collections.Generic;
 using System.Linq;

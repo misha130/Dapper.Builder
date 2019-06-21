@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 
-namespace Dapper.Builder.Core.Configuration
+namespace Dapper.Builder.Core
 {
     /// <summary>
     /// Builder configuration for .net core

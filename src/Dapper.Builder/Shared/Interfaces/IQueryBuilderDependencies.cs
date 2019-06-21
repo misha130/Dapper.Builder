@@ -3,7 +3,7 @@ using Dapper.Builder.Services;
 using System;
 using System.Data;
 
-namespace Dapper.Builder.Dependencies_Configuration.Aggregates
+namespace Dapper.Builder
 {
     public interface IQueryBuilderDependencies<T> where T : new()
     {

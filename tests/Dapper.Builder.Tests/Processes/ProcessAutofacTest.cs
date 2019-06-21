@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Dapper.Builder.Autofac;
-using Dapper.Builder.Autofac.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

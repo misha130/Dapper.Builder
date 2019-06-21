@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Dapper.Builder.Dependencies_Configuration.Aggregates;
-using System.Data;
-using System;
-using Dapper.Builder.Core.Configuration;
 using Dapper.Builder.Services;
 using Dapper.Builder.Processes;
+using Dapper.Builder.Extensions;
+using System.Data;
+using System;
 
-namespace Dapper.Builder.Extensions
+namespace Dapper.Builder.Core
 {
     /// <summary>
     /// Adds dapper builder support to core DI

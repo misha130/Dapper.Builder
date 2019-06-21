@@ -4,15 +4,17 @@ using Autofac;
 using Dapper.Builder.Processes;
 using Dapper.Builder.Services;
 
-namespace Dapper.Builder.Dependencies_Configuration.Aggregates {
+namespace Dapper.Builder.Autofac
+{
     /// <summary>
     /// Autofac implementation for dependencies aggregations
     /// </summary>
-    public class AutofacQueryBuilderDependencies<T> : QueryBuilderDependencies<T>, IQueryBuilderDependencies<T> where T : new () {
-       
+    public class AutofacQueryBuilderDependencies<T> : QueryBuilderDependencies<T>, IQueryBuilderDependencies<T> where T : new()
+    {
+
         private Lazy<ILifetimeScope> Scope { get; set; }
-      
-        public AutofacQueryBuilderDependencies (
+
+        public AutofacQueryBuilderDependencies(
             IProcessHandler processHandler,
             IDbConnection context,
             Lazy<ILifetimeScope> scope,
@@ -21,22 +23,24 @@ namespace Dapper.Builder.Dependencies_Configuration.Aggregates {
             Lazy<IJoinHandler> joinHandler,
             Lazy<ISortHandler> sortHandler,
             Lazy<IPropertyParser> propertyParser
-        ) : base (
+        ) : base(
             processHandler,
             context,
             namingStrategyService,
             filterParser,
             joinHandler,
             sortHandler,
-            propertyParser) {
+            propertyParser)
+        {
             Scope = scope;
         }
         /// <summary>
         /// Resolves the services using Autofac
         /// </summary>
         /// <typeparam name="TService">The service that needs to be resolved</typeparam>
-        public TService ResolveService<TService> () {
-            return Scope.Value.Resolve<TService> ();
+        public TService ResolveService<TService>()
+        {
+            return Scope.Value.Resolve<TService>();
         }
     }
 }

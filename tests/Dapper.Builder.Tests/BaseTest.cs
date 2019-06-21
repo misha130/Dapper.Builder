@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using System.Data.SqlClient;
-using Dapper.Builder.Core.Configuration;
+using Dapper.Builder.Core;
 
 namespace Dapper.Builder.Tests
 {

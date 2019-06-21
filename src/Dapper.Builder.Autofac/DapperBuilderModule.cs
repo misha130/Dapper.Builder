@@ -1,6 +1,4 @@
 ﻿using Autofac;
-using Dapper.Builder.Autofac.Configuration;
-using Dapper.Builder.Dependencies_Configuration.Aggregates;
 using Dapper.Builder.Extensions;
 using Dapper.Builder.Processes;
 using Dapper.Builder.Services;
