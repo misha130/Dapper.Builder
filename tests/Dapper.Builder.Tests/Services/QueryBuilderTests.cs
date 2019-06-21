@@ -21,9 +21,16 @@ namespace Dapper.Builder.Tests.Services
 
 
         [TestMethod]
-        public void AllQuerySingleColumn()
+        public void AllQuerySingleColumnByExpression()
         {
             var queryString = queryBuilder.Columns(tc => tc.Id).GetQueryString();
+            Assert.AreEqual("SELECT [Users].[Id] FROM [Users]".Trim().ToLower(), queryString.Query.Trim().ToLower());
+        }
+
+        [TestMethod]
+        public void AllQuerySingleColumnByString()
+        {
+            var queryString = queryBuilder.Columns(nameof(UserMock.Id)).GetQueryString();
             Assert.AreEqual("SELECT [Users].[Id] FROM [Users]".Trim().ToLower(), queryString.Query.Trim().ToLower());
         }
 
