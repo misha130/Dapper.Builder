@@ -47,7 +47,7 @@ namespace Dapper.Builder.Services
             {
                 if (Options.SelectColumns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc => dependencies.NamingStrategy.GetColumnName<TEntity>(sc))));
+                    query.Append(string.Join(",", Options.SelectColumns.Select(sc => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
                     query.Append(" ");
                 }
                 else
@@ -81,7 +81,7 @@ namespace Dapper.Builder.Services
             if (Options.GroupingColumns.Any())
             {
                 query.AppendLine(" GROUP BY ");
-                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(x => dependencies.NamingStrategy.GetColumnName<TEntity>(x)))}");
+                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(x => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(x)))}");
 
             }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using BR.POCO.DB;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
 namespace Dapper.Builder.Tests.Services
@@ -12,7 +13,7 @@ namespace Dapper.Builder.Tests.Services
         [TestMethod]
         public void AllServices()
         {
-            var dependencies = Resolve<IQueryBuilderDependencies<TestClass>>();
+            var dependencies = Resolve<IQueryBuilderDependencies<UserMock>>();
             var props = dependencies.GetType().GetProperties();
             Assert.IsTrue(props.All(prop => prop.GetValue(dependencies) != null));
         }

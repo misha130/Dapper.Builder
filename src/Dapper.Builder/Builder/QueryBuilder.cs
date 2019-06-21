@@ -234,7 +234,7 @@ namespace Dapper.Builder
                 if (Options.SelectColumns.Any())
                 {
                     query.Append(string.Join(",", Options.SelectColumns.Select(sc =>
-                   dependencies.NamingStrategy.GetColumnName<TEntity>(sc))) + " ");
+                   dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))) + " ");
                 }
                 else
                 {
@@ -266,7 +266,7 @@ namespace Dapper.Builder
             {
                 query.AppendLine(" GROUP BY ");
                 query.AppendLine($@"{string.Join(",", Options.GroupingColumns
-                    .Select(x => dependencies.NamingStrategy.GetColumnName<TEntity>(x)))}
+                    .Select(x => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(x)))}
                 ");
 
             }
@@ -365,7 +365,7 @@ namespace Dapper.Builder
             query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
 
-            query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetColumnName<TEntity>(d)))})");
+            query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
 
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))})");
 
@@ -405,7 +405,7 @@ namespace Dapper.Builder
             int innerCount = Options.ParamCount;
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             query.AppendLine("SET ");
-            query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetColumnName<TEntity>(column)} = {parameterBinding}{innerCount++}")));
+            query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(column)} = {parameterBinding}{innerCount++}")));
 
             if (Options.JoinQueries.Any())
             {

@@ -1,4 +1,5 @@
-﻿using Dapper.Builder.Core;
+﻿using BR.POCO.DB;
+using Dapper.Builder.Core;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,11 +23,11 @@ namespace Dapper.Builder.Tests.Processes
              .UseStartup<TestProcessStartupByList>()
             .Build().Services;
 
-            var qbuilder = coreServices.GetService<IQueryBuilder<TestClass>>();
+            var qbuilder = coreServices.GetService<IQueryBuilder<UserMock>>();
 
             qbuilder.GetQueryString();
 
-            qbuilder.GetInsertString(new TestClass());
+            qbuilder.GetInsertString(new UserMock());
 
             Assert.IsTrue(AlmondProcess.AlmondPipeActive);
 
@@ -40,11 +41,11 @@ namespace Dapper.Builder.Tests.Processes
              .UseStartup<TestProcessStartupByAssembly>()
             .Build().Services;
 
-            var qbuilder = coreServices.GetService<IQueryBuilder<TestClass>>();
+            var qbuilder = coreServices.GetService<IQueryBuilder<UserMock>>();
 
             qbuilder.GetQueryString();
 
-            qbuilder.GetInsertString(new TestClass());
+            qbuilder.GetInsertString(new UserMock());
 
             Assert.IsTrue(AlmondProcess.AlmondPipeActive);
 

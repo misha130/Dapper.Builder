@@ -8,12 +8,20 @@ namespace Dapper.Builder.Services
 {
     public class NamingStrategyService : INamingStrategyService
     {
-        public string GetColumnName<TEntity>(string property, string alias = null)
+        public string GetTableAndColumnName<TEntity>(string property, string alias = null)
         where TEntity : new()
         {
             if (property.Contains(".")) return property;
             return $"{alias ?? GetTableName(typeof(TEntity))}.[{property}]";
         }
+
+        public string GetColumnName<TEntity>(string property, string alias = null)
+      where TEntity : new()
+        {
+            if (property.Contains(".")) return property;
+            return alias ?? $"[{property}]";
+        }
+
 
         public string GetTableName<TEntity>() where TEntity : new()
         {

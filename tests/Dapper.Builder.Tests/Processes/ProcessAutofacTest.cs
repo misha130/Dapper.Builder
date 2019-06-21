@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using BR.POCO.DB;
 using Dapper.Builder.Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -24,11 +25,11 @@ namespace Dapper.Builder.Tests.Processes
                 UpdateProcesses = new List<Type> { typeof(AlmondProcess) },
             }));
             container = containerBuilder.Build();
-            var qbuilder = container.Resolve<IQueryBuilder<TestClass>>();
+            var qbuilder = container.Resolve<IQueryBuilder<UserMock>>();
 
             qbuilder.GetQueryString();
 
-            qbuilder.GetInsertString(new TestClass());
+            qbuilder.GetInsertString(new UserMock());
 
             Assert.IsTrue(AlmondProcess.AlmondPipeActive);
 
@@ -48,11 +49,11 @@ namespace Dapper.Builder.Tests.Processes
             }));
 
             container = containerBuilder.Build();
-            var qbuilder = container.Resolve<IQueryBuilder<TestClass>>();
+            var qbuilder = container.Resolve<IQueryBuilder<UserMock>>();
 
             qbuilder.GetQueryString();
 
-            qbuilder.GetInsertString(new TestClass());
+            qbuilder.GetInsertString(new UserMock());
 
             Assert.IsTrue(AlmondProcess.AlmondPipeActive);
 

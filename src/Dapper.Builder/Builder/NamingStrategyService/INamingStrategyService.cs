@@ -34,6 +34,8 @@ namespace Dapper.Builder.Services
         /// <param name="alias"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
+        string GetTableAndColumnName<TEntity>(string name, string alias = null) where TEntity : new();
+
         string GetColumnName<TEntity>(string name, string alias = null) where TEntity : new();
     }
 }
