@@ -1,14 +1,11 @@
 ﻿using BR.POCO.DB;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace Dapper.Builder.Tests.Services
 {
     [TestClass]
-    public class QueryBuilderTests : BaseTest
+    public class SqlQueryBuilderTests : BaseTest
     {
         private IQueryBuilder<UserMock> queryBuilder => Resolve<IQueryBuilder<UserMock>>();
 
@@ -18,7 +15,6 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.GetQueryString();
             Assert.AreEqual("SELECT * FROM [Users]".Trim(), queryString.Query.Trim());
         }
-
 
         [TestMethod]
         public void AllQuerySingleColumnByExpression()
@@ -55,6 +51,5 @@ namespace Dapper.Builder.Tests.Services
                 CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
-
     }
 }

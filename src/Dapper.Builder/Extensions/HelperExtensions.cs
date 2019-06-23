@@ -9,7 +9,7 @@ namespace Dapper.Builder.Extensions
     /// <summary>
     /// All kinds of short hand extensions
     /// </summary>
-    public static class HelperExtensions
+    internal static class HelperExtensions
     {
         /// <summary>
         /// Merges two dictionaries

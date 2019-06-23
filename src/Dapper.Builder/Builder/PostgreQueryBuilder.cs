@@ -12,6 +12,7 @@
 // <summary></summary>
 // ***********************************************************************
 using Dapper.Builder.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,11 +24,11 @@ namespace Dapper.Builder.Services
     /// </summary>
     public class PostgreQueryBuilder<TEntity> : QueryBuilder<TEntity> where TEntity : new()
     {
-        protected override string parameterBinding => ":";
+
         public PostgreQueryBuilder(IQueryBuilderDependencies<TEntity> dependencies) : base(dependencies)
         {
-
         }
+        protected override string parameterBinding => ":";
         public override QueryResult GetQueryString()
         {
             // pipes!
@@ -47,7 +48,8 @@ namespace Dapper.Builder.Services
             {
                 if (Options.SelectColumns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                    query.Append(string.Join(",", Options.SelectColumns.Select(sc =>
+                    dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
                     query.Append(" ");
                 }
                 else
@@ -81,29 +83,46 @@ namespace Dapper.Builder.Services
             if (Options.GroupingColumns.Any())
             {
                 query.AppendLine(" GROUP BY ");
-                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(x => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(x)))}");
-
+                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(col => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)))}");
             }
 
-            if (Options.SortColumns.Any())
+            if (!Options.Count)
             {
-                query.AppendLine(" ORDER BY ");
-                query.AppendLine($" {string.Join(",", Options.SortColumns)}");
-            }
+                if (Options.SortColumns.Any())
+                {
+                    query.AppendLine(" ORDER BY ");
+                    query.AppendLine($" {string.Join(",", Options.SortColumns)}");
+                }
 
-            if (Options.Top.HasValue)
-            {
-                query.AppendLine($"OFFSET {Options.Skip ?? 0} ROWS");
-                query.AppendLine($"FETCH FIRST {Options.Top.Value} ROWS ONLY");
-            }
+                if (Options.Top.HasValue)
+                {
+                    query.AppendLine($"OFFSET {Options.Skip ?? 0} ROWS");
+                    query.AppendLine($"FETCH FIRST {Options.Top.Value} ROWS ONLY");
+                }
 
-            if (Options.Json)
-            {
-                var forJsonQuery = $"select array_to_json(array_agg(row_to_json(t))) from ( {query})  t";
-                query = new StringBuilder(forJsonQuery);
+                if (Options.Json)
+                {
+                    if (Options.JsonPrimitive)
+                    {
+                        if (Options.SelectColumns.Count > 1) throw new ArgumentException("Json primitive support only one column");
+                        var forArrayJsonQuery = $@"select array_to_json(array_agg({dependencies.NamingStrategy.GetTableAndColumnName<TEntity>($"t.{Options.SelectColumns.FirstOrDefault()}")})) from ( {query})  t";
+                        query = new StringBuilder(forArrayJsonQuery);
+                    }
+                    else
+                    {
+                        if (Options.Top == 1 && (!Options.Skip.HasValue || Options.Skip.Value == 0))
+                        {
+                            var forJsonQuery = $"select row_to_json(t) from ( {query})  t";
+                            query = new StringBuilder(forJsonQuery);
+                        }
+                        else
+                        {
+                            var forArrayJsonQuery = $"select array_to_json(array_agg(row_to_json(t))) from ( {query})  t";
+                            query = new StringBuilder(forArrayJsonQuery);
+                        }
+                    }
+                }
             }
-
-            // query.Append(";");
             return new QueryResult
             {
                 Query = query.ToString(),
@@ -119,12 +138,13 @@ namespace Dapper.Builder.Services
             // here should be implemented joins and select on insert
             StringBuilder query = new StringBuilder();
             query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
-            IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            IEnumerable<string> columns = Options.SelectColumns.Any() ?
+                                          Options.SelectColumns :
+                                          dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => $"\"{d.ToCamelCase()}\""))})");
-
-            query.AppendLine($"VALUES ({string.Join(", ", columns.Select(p => $":{innerCount++}"))})");
-            query.Append("RETURNING  Id;");
+            query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $":{innerCount++}"))})");
+            query.Append("RETURNING  Id");
             Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
@@ -143,11 +163,12 @@ namespace Dapper.Builder.Services
             StringBuilder query = new StringBuilder();
             query.Append($"UPDATE {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             int innerCount = Options.Parameters.Count + 1;
-            Options.ParamCount = Options.Parameters.Count + 1;
-            IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns :
-             dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+
+            IEnumerable<string> columns = Options.SelectColumns.Any() ?
+                                          Options.SelectColumns :
+                                         dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             query.AppendLine("SET ");
-            query.AppendLine(string.Join(", ", columns.Select(column => $"\"{column.ToCamelCase()}\" = {parameterBinding}{innerCount++}")));
+            query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetColumnName<TEntity>(column)} = { parameterBinding }{ innerCount++}")));
 
             if (Options.JoinQueries.Any())
             {
@@ -165,7 +186,8 @@ namespace Dapper.Builder.Services
                 query.AppendLine(" WHERE ");
                 query.AppendLine(string.Join(" AND ", Options.WhereStrings));
             }
-
+            query.AppendLine("RETURNING Id");
+            Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
             {
@@ -177,8 +199,24 @@ namespace Dapper.Builder.Services
 
         public override IQueryBuilder<TEntity> Columns<U>(params string[] columns)
         {
-            Options.SelectColumns.AddRange(columns.Select(col => $"{typeof(U)}.{col}"));
+            Options.SelectColumns.AddRange(columns.Select(col => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)));
             return this;
         }
+
+        //TODO: do upsert
+        //public override async Task<long> ExecuteUpsertAsync(TEntity entity, Expression<Func<TEntity, object>> conflict)
+        //{
+        //    StringBuilder query = new StringBuilder();
+        //    var insertQuery = GetInsertString(entity);
+        //    var updateQuery = GetUpdateString(entity);
+
+        //    var properties = dependencies.PropertyParser.Value.Parse(conflict);
+        //    query.AppendLine(insertQuery.Query);
+        //    query.AppendLine($"ON CONFLICT({string.Join(",", properties)}) DO UPDATE");
+        //    query.AppendLine(updateQuery.Query);
+        //    query.AppendLine("RETURNING id");
+
+        //    return await dependencies.Context.QueryFirstOrDefaultAsync<long>(query.ToString(), Options.Parameters);
+        //}
     }
 }

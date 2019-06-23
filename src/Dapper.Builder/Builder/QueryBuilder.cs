@@ -528,6 +528,7 @@ namespace Dapper.Builder
         public bool Distinct = false;
         public bool Count = false;
         public bool Json = false;
+        public bool JsonPrimitive = false;
         public int ParamCount = 1;
         public int? Top;
         public string Alias;
