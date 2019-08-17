@@ -51,5 +51,16 @@ namespace Dapper.Builder.Tests.Services
                 CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
+
+        [TestMethod]
+        public void QueryWhereIsNull()
+        {
+            var queryString = queryBuilder.Columns(tc => tc.Id).Where(tc => tc.Email == null).GetQueryString();
+            Assert.AreEqual(
+                           string.Compare("SELECT [Users].[Id] FROM [Users] WHERE ([Users].[Email] is null)",
+                           queryString.Query,
+                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                           , 0);
+        }
     }
 }

@@ -76,15 +76,32 @@ namespace Dapper.Builder.Services
                 {
                     return Concat(IsParameter(i++, value), "=", IsSql("1"));
                 }
+                if (value == null)
+                {
+                    return IsSql("null");
+                }
                 return IsParameter(i++, value);
             }
             if (expression is MemberExpression)
             {
 
                 var member = (MemberExpression)expression;
+                if (member.Member is FieldInfo)
+                {
+                    var value = GetValue(member);
+                    if (value is string)
+                    {
+                        value = prefix + (string)value + postfix;
+                    }
+                    return IsParameter(i++, value);
+                }
                 try
                 {
                     var value = Expression.Lambda(expression).Compile().DynamicInvoke();
+                    if (value is string)
+                    {
+                        value = prefix + (string)value + postfix;
+                    }
                     return IsParameter(i++, value);
                 }
                 catch
@@ -173,6 +190,10 @@ namespace Dapper.Builder.Services
                 try
                 {
                     var value = Expression.Lambda(expression).Compile().DynamicInvoke();
+                    if (value is string)
+                    {
+                        value = prefix + (string)value + postfix;
+                    }
                     return IsParameter(i++, value);
                 }
                 finally

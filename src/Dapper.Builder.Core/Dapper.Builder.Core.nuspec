@@ -11,8 +11,8 @@
     <description>A dapper extension that lets fluently build queries</description>
     <tags>Dapper Builder SQL Postgre Snowflake</tags>
     <dependencies>
-      <dependency id="Dapper" version="1.5.0" />
-      <dependency id="FastMember" version="1.4.0" />
+      <dependency id="Dapper" version="1.60.6" />
+      <dependency id="FastMember" version="1.5.0" />
       <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="2.1.0" />
       <dependency id="Newtonsoft.Json" version="9.0.1" />
       <dependency id="System.ComponentModel.Annotations" version="4.5.0" />

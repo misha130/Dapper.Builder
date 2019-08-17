@@ -503,6 +503,14 @@ namespace Dapper.Builder
             var query = GetInsertString(entity);
             return await dependencies.Context.QueryFirstOrDefaultAsync<long>(query.Query, query.Parameters);
         }
+
+        public IQueryBuilder<TEntity> CloneInstance()
+        {
+            var newBuilder = dependencies.ResolveService<IQueryBuilder<TEntity>>();
+            (newBuilder as QueryBuilder<TEntity>).Options = Options.Clone();
+
+            return newBuilder;
+        }
     }
 
     public class QueryResult
@@ -542,6 +550,34 @@ namespace Dapper.Builder
         public List<JoinQuery> JoinQueries = new List<JoinQuery>();
         public Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> Action;
         public Dictionary<string, object> Parameters = new Dictionary<string, object>();
+
+        public QueryBuilderOptions<TEntity> Clone()
+        {
+            var queryOptions = new QueryBuilderOptions<TEntity>();
+            queryOptions.Json = this.Json;
+            queryOptions.Distinct = this.Distinct;
+            queryOptions.Count = this.Count;
+            queryOptions.JsonPrimitive = this.JsonPrimitive;
+            queryOptions.ParamCount = this.ParamCount;
+            queryOptions.Top = this.Top;
+            queryOptions.Alias = this.Alias;
+            queryOptions.ParentAlias = this.ParentAlias;
+            queryOptions.Skip = this.Skip;
+            queryOptions.Action = this.Action;
+            queryOptions.SelectColumns = this.SelectColumns.Select(x => x).ToList();
+            queryOptions.Subqueries = this.Subqueries.Select(x => x).ToList();
+            queryOptions.GroupingColumns = this.GroupingColumns.Select(x => x).ToList();
+            queryOptions.SortColumns = this.SortColumns.Select(x => x).ToList();
+            queryOptions.WhereStrings = this.WhereStrings.Select(x => x).ToList();
+            queryOptions.JoinQueries = this.JoinQueries.Select(x => x).ToList();
+            queryOptions.Parameters = new Dictionary<string, object>();
+            foreach (var param in this.Parameters)
+            {
+                queryOptions.Parameters.Add(param.Key, param.Value);
+            }
+
+            return queryOptions;
+        }
     }
 
     public class JoinQuery
