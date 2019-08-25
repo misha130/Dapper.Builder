@@ -1,9 +1,11 @@
-variables:
-  buildConfiguration: 'Release'
-steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-    
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
+version: 2
+jobs:
+  build:
+    docker:
+      - image: mcr.microsoft.com/dotnet/core/sdk:3.0.100-preview2-alpine3.8
+    steps:
+      - checkout
+      - run: find .
+      - run: dotnet restore
+      - run: dotnet build
+      - run: dotnet test --no-build Build.Tests
