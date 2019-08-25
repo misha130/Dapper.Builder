@@ -144,7 +144,7 @@ namespace Dapper.Builder.Services
                         tableName = _namingService.GetTableName(type);
                     }
 
-                    return IsSql($"{tableName}.[{colName}]");
+                    return IsSql($"{prefix}{tableName}.[{colName}]{postfix}");
                 }
                 if (member.Member is FieldInfo)
                 {
@@ -163,15 +163,15 @@ namespace Dapper.Builder.Services
                 // LIKE queries:
                 if (methodCall.Method == typeof(string).GetMethod("Contains", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%", postfix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%", postfix: "%"));
                 }
                 if (methodCall.Method == typeof(string).GetMethod("StartsWith", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], postfix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], postfix: "%"));
                 }
                 if (methodCall.Method == typeof(string).GetMethod("EndsWith", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%"));
                 }
                 // IN queries:
                 if (methodCall.Method.Name == "Contains")
@@ -193,7 +193,17 @@ namespace Dapper.Builder.Services
                         throw new Exception("Unsupported method call: " + methodCall.Method.Name);
                     }
                     var values = (IEnumerable)GetValue(collection);
-                    return Concat(Recurse<UEntity>(ref i, property), "IN", IsCollection(ref i, values));
+                    return Concat(Recurse<UEntity>(ref i, property), " IN ", IsCollection(ref i, values));
+                }
+                if (methodCall.Method.Name == nameof(string.ToLower)
+                    || methodCall.Method.Name == nameof(string.ToLowerInvariant))
+                {
+                    return Concat(IsSql("LOWER"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", ")"));
+                }
+                if (methodCall.Method.Name == nameof(string.ToUpper)
+                   || methodCall.Method.Name == nameof(string.ToUpperInvariant))
+                {
+                    return Concat(IsSql("UPPER"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", ")"));
                 }
                 try
                 {
@@ -203,6 +213,10 @@ namespace Dapper.Builder.Services
                         value = prefix + (string)value + postfix;
                     }
                     return IsParameter(i++, value);
+                }
+                catch
+                {
+
                 }
                 finally
                 {
@@ -323,7 +337,7 @@ namespace Dapper.Builder.Services
             return
             new QueryResult
             {
-                Query = $"({@operator} {operand.Query})",
+                Query = $"({@operator}{operand.Query})",
                 Parameters = operand.Parameters,
             };
 
@@ -353,7 +367,7 @@ namespace Dapper.Builder.Services
             return
             new QueryResult
             {
-                Query = $"({left.Query} {eqOperator} {right.Query})",
+                Query = $"({left.Query}{eqOperator}{right.Query})",
                 Parameters = left.Parameters.Union(right.Parameters).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             };
         }
