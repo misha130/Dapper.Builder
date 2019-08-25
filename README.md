@@ -6,6 +6,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Autofac.svg)](https://www.nuget.org/packages/Dapper.Builder.Autofac)
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Core.svg)](https://www.nuget.org/packages/Dapper.Builder.Core)
 
+[![CircleCI](https://circleci.com/gh/misha130/Dapper.Builder.svg?style=svg)](https://circleci.com/gh/misha130/Dapper.Builder)
 
 ## Installation
 
