@@ -8,4 +8,4 @@ jobs:
       - run: find .
       - run: dotnet restore
       - run: dotnet build
-      - run: dotnet test --no-build Build.Tests
+      - run: dotnet test --no-build Dapper.Builder.Tests
