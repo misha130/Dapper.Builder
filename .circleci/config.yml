@@ -1,0 +1,15 @@
+steps:
+- script: dotnet restore
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: 'src/**/*.csproj'
+    arguments: '--configuration Release'
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: 'src/**/*Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
