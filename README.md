@@ -99,7 +99,6 @@ The same reason why IQueryable exists. So you could pass this along to other met
 	* Dapper has no out of the box support for Snowflake and their driver has no support for Dapper.
 * Aggregations - ie. sum, max, min, etc.
 * More methods to implement.
-* .Net Framework 4.6.2 support without any IoC library requirements.
 
 ### Contributors
 

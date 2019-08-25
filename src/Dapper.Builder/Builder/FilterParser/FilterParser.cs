@@ -58,7 +58,15 @@ namespace Dapper.Builder.Services
             if (expression is BinaryExpression)
             {
                 var body = (BinaryExpression)expression;
-                return Concat(Recurse<UEntity>(ref i, body.Left), NodeTypeToString(body.NodeType), Recurse<UEntity>(ref i, body.Right));
+                if (body.NodeType == ExpressionType.ArrayIndex)
+                {
+                    var arrayValue = Expression.Lambda(body).Compile().DynamicInvoke();
+                    return IsParameter(i++, arrayValue);
+                }
+                else
+                {
+                    return Concat(Recurse<UEntity>(ref i, body.Left), NodeTypeToString(body.NodeType), Recurse<UEntity>(ref i, body.Right));
+                }
             }
             if (expression is ConstantExpression)
             {

@@ -62,5 +62,18 @@ namespace Dapper.Builder.Tests.Services
                            CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                            , 0);
         }
+
+
+        [TestMethod]
+        public void QueryArrayIndexWhere()
+        {
+            var sampleText = "something_something".Split('_');
+            var queryString = queryBuilder.Where(a => a.FirstName == sampleText[0] && a.LastName == sampleText[1]).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE (([Users].[FirstName]) = @1 and ([Users].[LastName] = @2))",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
     }
 }
