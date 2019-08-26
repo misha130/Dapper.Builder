@@ -6,7 +6,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Autofac.svg)](https://www.nuget.org/packages/Dapper.Builder.Autofac)
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Core.svg)](https://www.nuget.org/packages/Dapper.Builder.Core)
 
-
+[![Build Status](https://emdanet.visualstudio.com/Dapper.Builder/_apis/build/status/misha130.Dapper.Builder?branchName=master)](https://emdanet.visualstudio.com/Dapper.Builder/_build/latest?definitionId=4&branchName=master)
 ## Installation
 
 Autofac 
