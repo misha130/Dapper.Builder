@@ -88,7 +88,7 @@ namespace Dapper.Builder
             }
             var result = query(queryBuilder).GetQueryString();
             ParamCount(result.Count);
-            Options.Subqueries.Add($"({result.Query}) as {alias}");
+            Options.Subqueries.Add($"({result.Query}) as {alias} ");
             if (result.Parameters != null)
             {
                 Options.Parameters.Merge(result.Parameters);
@@ -243,7 +243,7 @@ namespace Dapper.Builder
                 if (Options.Subqueries.Any())
                 {
                     query.Append(", ");
-                    query.Append(string.Join(",", Options.Subqueries + " "));
+                    query.Append(string.Join(", ", Options.Subqueries));
                 }
             }
 

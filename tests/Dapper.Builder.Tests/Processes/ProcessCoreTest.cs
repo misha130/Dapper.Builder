@@ -1,5 +1,4 @@
-﻿using BR.POCO.DB;
-using Dapper.Builder.Core;
+﻿using Dapper.Builder.Core;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

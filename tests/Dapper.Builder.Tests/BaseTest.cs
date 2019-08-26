@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore;
 using System;
-using Dapper.Builder.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;

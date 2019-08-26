@@ -1,5 +1,4 @@
-﻿using BR.POCO.DB;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -168,9 +167,26 @@ namespace Dapper.Builder.Tests.Services
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
-            foreach (var id in ids){
+            foreach (var id in ids)
+            {
                 Assert.AreEqual(id, queryString.Parameters[id.ToString()]);
             }
+        }
+
+        [TestMethod]
+        public void QueryDoubleSubQuery()
+        {
+            var queryString = queryBuilder
+                .SubQuery<AssetMock>(qb => qb.Where<UserMock>((asset, user) => asset.UserId == user.Id).Json(), nameof(UserMock.Assets))
+                .SubQuery<ContractMock>(qb => qb.Where<UserMock>((contract, user) => contract.UserId == user.Id).Json(), nameof(UserMock.Contracts))
+                .GetQueryString();
+
+            Assert.AreEqual(
+                         string.Compare("SELECT * , (SELECT * FROM [Assets] WHERE ([Assets].[UserId] = [Users].[Id]) FOR JSON PATH ) as Assets , (SELECT * FROM [Contracts] WHERE ([Contracts].[UserId] = [Users].[Id]) FOR JSON PATH ) as Contracts  FROM [Users]",
+                         queryString.Query,
+                         CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                         , 0);
+
         }
     }
 }
