@@ -89,6 +89,18 @@ namespace Dapper.Builder.Tests.Services
         }
 
         [TestMethod]
+        public void QueryToLowerWithBoolean()
+        {
+            var mock = new UserMock { FirstName = "Misha" };
+            var queryString = queryBuilder.Where(a => a.Independent && a.FirstName.ToLower() == mock.FirstName.ToLower()).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE (([Users].[Independent] = @1) AND ((LOWER([Users].[FirstName])) = LOWER(@2)))",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
+        [TestMethod]
         public void QueryToLowerInvariant()
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLowerInvariant() == "Misha").GetQueryString();
@@ -156,6 +168,18 @@ namespace Dapper.Builder.Tests.Services
                           , 0);
             Assert.AreEqual("%M%", queryString.Parameters.Values.First());
         }
+
+        [TestMethod]
+        public void QueryBoolean()
+        {
+            var queryString = queryBuilder.Where(a => a.Independent).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
 
         [TestMethod]
         public void QueryListContains()

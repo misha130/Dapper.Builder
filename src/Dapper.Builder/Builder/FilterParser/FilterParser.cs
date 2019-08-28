@@ -32,20 +32,20 @@ namespace Dapper.Builder.Services
         }
         public QueryResult Parse(Expression<Func<TEntity, bool>> expression, ref int i)
         {
-            return Recurse<TEntity>(ref i, expression.Body, isUnary: true);
+            return Recurse<TEntity>(ref i, expression.Body);
         }
 
         public QueryResult Parse<UEntity>(Expression<Func<TEntity, UEntity, bool>> expression, ref int i)
         where UEntity : new()
         {
-            return Recurse<UEntity>(ref i, expression.Body, isUnary: true);
+            return Recurse<UEntity>(ref i, expression.Body);
         }
 
         public QueryResult Parse<UEntity, WEntity>(Expression<Func<UEntity, WEntity, bool>> expression, ref int i)
         where UEntity : new()
         where WEntity : new()
         {
-            return Recurse<UEntity>(ref i, expression.Body, isUnary: true);
+            return Recurse<UEntity>(ref i, expression.Body);
         }
         protected virtual QueryResult Recurse<UEntity>(ref int i, Expression expression, bool isUnary = false, string prefix = null, string postfix = null)
         where UEntity : new()
@@ -80,9 +80,9 @@ namespace Dapper.Builder.Services
                 {
                     value = prefix + (string)value + postfix;
                 }
-                if (value is bool && isUnary)
+                if (value is bool)
                 {
-                    return Concat(IsParameter(i++, value), "=", IsSql("1"));
+                    return Concat(IsParameter(i++, value), " = ", IsSql("1"));
                 }
                 if (value == null)
                 {
@@ -106,11 +106,9 @@ namespace Dapper.Builder.Services
                 try
                 {
                     var value = Expression.Lambda(expression).Compile().DynamicInvoke();
-                    if (value is string)
-                    {
-                        value = prefix + (string)value + postfix;
-                    }
-                    return IsParameter(i++, value);
+                    var parameter = IsParameter(i++, value);
+                    parameter.Query = prefix + parameter.Query + postfix;
+                    return parameter;
                 }
                 catch
                 {
@@ -121,9 +119,9 @@ namespace Dapper.Builder.Services
                 {
                     var property = (PropertyInfo)member.Member;
                     var colName = property.Name;
-                    if (isUnary && member.Type == typeof(bool))
+                    if (!isUnary && member.Type == typeof(bool))
                     {
-                        return Concat(Recurse<UEntity>(ref i, expression), "=", IsParameter(i++, true));
+                        return Concat(Recurse<UEntity>(ref i, expression, true), " = ", IsParameter(i++, true));
                     }
                     var type = member.Expression.Type;
                     if (type.IsInterface)
@@ -251,48 +249,71 @@ namespace Dapper.Builder.Services
 
         protected static string NodeTypeToString(ExpressionType nodeType)
         {
+            var @operator = string.Empty;
             switch (nodeType)
             {
                 case ExpressionType.Add:
-                    return "+";
+                    @operator = "+";
+                    break;
                 case ExpressionType.And:
-                    return "&";
+                    @operator = "&";
+                    break;
                 case ExpressionType.AndAlso:
-                    return "AND";
+                    @operator = "AND";
+                    break;
                 case ExpressionType.Divide:
-                    return "/";
+                    @operator = "/";
+                    break;
                 case ExpressionType.Equal:
-                    return "=";
+                    @operator = "=";
+                    break;
                 case ExpressionType.ExclusiveOr:
-                    return "^";
+                    @operator = "^";
+                    break;
                 case ExpressionType.GreaterThan:
-                    return ">";
+                    @operator = ">";
+                    break;
                 case ExpressionType.GreaterThanOrEqual:
-                    return ">=";
+                    @operator = ">=";
+                    break;
                 case ExpressionType.LessThan:
-                    return "<";
+                    @operator = "<";
+                    break;
                 case ExpressionType.LessThanOrEqual:
-                    return "<=";
+                    @operator = "<=";
+                    break;
                 case ExpressionType.Modulo:
-                    return "%";
+                    @operator = "%";
+                    break;
                 case ExpressionType.Multiply:
-                    return "*";
+                    @operator = "*";
+                    break;
                 case ExpressionType.Negate:
-                    return "-";
+                    @operator = "-";
+                    break;
                 case ExpressionType.Not:
-                    return "NOT";
+                    @operator = "NOT";
+                    break;
                 case ExpressionType.NotEqual:
-                    return "<>";
+                    @operator = "<>";
+                    break;
                 case ExpressionType.Or:
-                    return "|";
+                    @operator = "|";
+                    break;
                 case ExpressionType.OrElse:
-                    return "OR";
+                    @operator = "OR";
+                    break;
                 case ExpressionType.Subtract:
-                    return "-";
+                    @operator = "-";
+                    break;
                 case ExpressionType.Convert:
-                    return string.Empty;
+                    @operator = string.Empty;
+                    break;
+                default:
+                    throw new Exception($"Unsupported node type: {nodeType}");
             }
-            throw new Exception($"Unsupported node type: {nodeType}");
+            return $" {@operator} ";
+
         }
         protected virtual QueryResult IsSql(string sql)
         {
@@ -348,7 +369,7 @@ namespace Dapper.Builder.Services
         {
             string eqOperator;
 
-            if (left.Query == right.Query && @operator == "=")
+            if (left.Query == right.Query && @operator.Trim() == "=")
             {
                 // there is a check for the same type on an inner join, should change one alias to a parent alias
                 if (_parentAliases.ContainsKey(typeof(TEntity)))
@@ -356,7 +377,7 @@ namespace Dapper.Builder.Services
                     right.Query = right.Query.Replace($"{_alias}.", $"{_parentAliases[typeof(TEntity)]}.");
                 }
             }
-            if (right.Query.ToLower() == "null" && @operator == "=")
+            if (right.Query.ToLower() == "null" && @operator.Trim() == "=")
             {
                 eqOperator = "is";
             }
