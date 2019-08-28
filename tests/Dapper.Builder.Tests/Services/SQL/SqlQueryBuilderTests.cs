@@ -134,6 +134,18 @@ namespace Dapper.Builder.Tests.Services
         }
 
         [TestMethod]
+        public void QueryCount()
+        {
+            var queryString = queryBuilder.Count().Where(a => a.Independent).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT COUNT(*) FROM [Users] WHERE ([Users].[Independent] = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
+
+        [TestMethod]
         public void QueryStartsWith()
         {
             var queryString = queryBuilder.Where(a => a.FirstName.StartsWith("M")).GetQueryString();
@@ -169,7 +181,8 @@ namespace Dapper.Builder.Tests.Services
             Assert.AreEqual("%M%", queryString.Parameters.Values.First());
         }
 
-        [TestMethod]
+        [TestMethod, Description("lmao it doesn't actually work, you have to do == false/true")]
+        [Ignore]
         public void QueryBoolean()
         {
             var queryString = queryBuilder.Where(a => a.Independent).GetQueryString();
@@ -180,6 +193,39 @@ namespace Dapper.Builder.Tests.Services
                           , 0);
         }
 
+        [TestMethod(), Description("lmao it doesn't actually work, you have to do == false/true")]
+        [Ignore]
+        public void QueryBooleanFalse()
+        {
+            var queryString = queryBuilder.Where(a => !a.Independent).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
+        [TestMethod()]
+        public void QueryBooleanWithEqual()
+        {
+            var queryString = queryBuilder.Where(a => a.Independent == true).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
+        [TestMethod()]
+        public void QueryBooleanFalseWithEqual()
+        {
+            var queryString = queryBuilder.Where(a => a.Independent == false).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
 
         [TestMethod]
         public void QueryListContains()

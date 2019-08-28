@@ -32,20 +32,20 @@ namespace Dapper.Builder.Services
         }
         public QueryResult Parse(Expression<Func<TEntity, bool>> expression, ref int i)
         {
-            return Recurse<TEntity>(ref i, expression.Body);
+            return Recurse<TEntity>(ref i, expression.Body, true);
         }
 
         public QueryResult Parse<UEntity>(Expression<Func<TEntity, UEntity, bool>> expression, ref int i)
         where UEntity : new()
         {
-            return Recurse<UEntity>(ref i, expression.Body);
+            return Recurse<UEntity>(ref i, expression.Body, true);
         }
 
         public QueryResult Parse<UEntity, WEntity>(Expression<Func<UEntity, WEntity, bool>> expression, ref int i)
         where UEntity : new()
         where WEntity : new()
         {
-            return Recurse<UEntity>(ref i, expression.Body);
+            return Recurse<UEntity>(ref i, expression.Body, true);
         }
         protected virtual QueryResult Recurse<UEntity>(ref int i, Expression expression, bool isUnary = false, string prefix = null, string postfix = null)
         where UEntity : new()
@@ -80,7 +80,7 @@ namespace Dapper.Builder.Services
                 {
                     value = prefix + (string)value + postfix;
                 }
-                if (value is bool)
+                if (isUnary && value is bool)
                 {
                     return Concat(IsParameter(i++, value), " = ", IsSql("1"));
                 }
@@ -119,9 +119,9 @@ namespace Dapper.Builder.Services
                 {
                     var property = (PropertyInfo)member.Member;
                     var colName = property.Name;
-                    if (!isUnary && member.Type == typeof(bool))
+                    if (isUnary && member.Type == typeof(bool))
                     {
-                        return Concat(Recurse<UEntity>(ref i, expression, true), " = ", IsParameter(i++, true));
+                        return Concat(Recurse<UEntity>(ref i, expression), " = ", IsParameter(i++, true));
                     }
                     var type = member.Expression.Type;
                     if (type.IsInterface)
