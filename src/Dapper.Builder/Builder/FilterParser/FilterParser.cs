@@ -47,6 +47,15 @@ namespace Dapper.Builder.Services
         {
             return Recurse<UEntity>(ref i, expression.Body, true);
         }
+
+        public QueryResult Parse<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> expression, ref int i)
+            where UEntity : new()
+            where WEntity : new()
+        {
+            return Recurse<UEntity>(ref i, expression.Body, isUnary: true);
+        }
+
+
         protected virtual QueryResult Recurse<UEntity>(ref int i, Expression expression, bool isUnary = false, string prefix = null, string postfix = null)
         where UEntity : new()
         {

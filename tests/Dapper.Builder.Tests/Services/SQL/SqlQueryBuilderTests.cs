@@ -78,6 +78,24 @@ namespace Dapper.Builder.Tests.Services
         }
 
         [TestMethod]
+        public void QueryDoubleWhere()
+        {
+            var queryString = queryBuilder.Join<ContractMock>((u, c) => c.UserId == u.Id)
+                .Join<AssetMock>((u, a) => a.UserId == u.Id)
+                .Where<ContractMock, AssetMock>((c, a, u) => c.UserId == a.UserId).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare(
+                              @"SELECT * FROM [Users]
+                          INNER JOIN [Contracts] ON ([Contracts].[UserId] = [Users].[Id])
+                          INNER JOIN [Assets] ON ([Assets].[UserId] = [Users].[Id])
+                          WHERE ([Contracts].[UserId] = [Assets].[UserId])",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
+
+
+        [TestMethod]
         public void QueryToLower()
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLower() == "Misha").GetQueryString();
@@ -181,29 +199,29 @@ namespace Dapper.Builder.Tests.Services
             Assert.AreEqual("%M%", queryString.Parameters.Values.First());
         }
 
-        [TestMethod, Description("lmao it doesn't actually work, you have to do == false/true")]
-        [Ignore]
-        public void QueryBoolean()
-        {
-            var queryString = queryBuilder.Where(a => a.Independent).GetQueryString();
-            Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
-                          queryString.Query,
-                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                          , 0);
-        }
+        //[TestMethod, Description("lmao it doesn't actually work, you have to do == false/true")]
+        //[Ignore]
+        //public void QueryBoolean()
+        //{
+        //    var queryString = queryBuilder.Where(a => a.Independent).GetQueryString();
+        //    Assert.AreEqual(
+        //                  string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+        //                  queryString.Query,
+        //                  CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+        //                  , 0);
+        //}
 
-        [TestMethod(), Description("lmao it doesn't actually work, you have to do == false/true")]
-        [Ignore]
-        public void QueryBooleanFalse()
-        {
-            var queryString = queryBuilder.Where(a => !a.Independent).GetQueryString();
-            Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
-                          queryString.Query,
-                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                          , 0);
-        }
+        //[TestMethod(), Description("lmao it doesn't actually work, you have to do == false/true")]
+        //[Ignore]
+        //public void QueryBooleanFalse()
+        //{
+        //    var queryString = queryBuilder.Where(a => !a.Independent).GetQueryString();
+        //    Assert.AreEqual(
+        //                  string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+        //                  queryString.Query,
+        //                  CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+        //                  , 0);
+        //}
 
         [TestMethod()]
         public void QueryBooleanWithEqual()

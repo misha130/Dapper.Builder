@@ -27,13 +27,7 @@ namespace Dapper.Builder
         protected virtual string parameterBinding => "@";
 
 
-        public IQueryBuilder<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
-        {
-            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
-            Options.WhereStrings.Add(whereResult.Query);
-            Options.Parameters.Merge(whereResult.Parameters);
-            return this;
-        }
+
 
         public void ParamCount(int count)
         {
@@ -46,8 +40,26 @@ namespace Dapper.Builder
             Options.WhereStrings.Add(whereResult.Query);
             Options.Parameters.Merge(whereResult.Parameters);
             return this;
-
         }
+
+        public IQueryBuilder<TEntity> Where<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> predicate)
+        where UEntity : new()
+        where WEntity : new()
+        {
+            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
+            Options.WhereStrings.Add(whereResult.Query);
+            Options.Parameters.Merge(whereResult.Parameters);
+            return this;
+        }
+
+        public IQueryBuilder<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+        {
+            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
+            Options.WhereStrings.Add(whereResult.Query);
+            Options.Parameters.Merge(whereResult.Parameters);
+            return this;
+        }
+
 
         public IQueryBuilder<TEntity> Json()
         {

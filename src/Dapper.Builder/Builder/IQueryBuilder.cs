@@ -27,8 +27,16 @@ namespace Dapper.Builder
         /// <typeparam name="UEntity">Some entity that was joined</typeparam>
         /// <param name="predicate">The expression that represents the condition</param>
         IQueryBuilder<TEntity> Where<UEntity>(Expression<Func<TEntity, UEntity, bool>> predicate) where UEntity : new();
-
-
+        /// <summary>
+        /// Adds a where condition to the query to two unrelated entities
+        /// </summary>
+        /// <typeparam name="U"></typeparam>
+        /// <typeparam name="W"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Where<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> predicate)
+        where UEntity : new()
+        where WEntity : new();
         /// <summary>
         /// Tells to add a distinct to the query
         /// </summary>
@@ -64,7 +72,7 @@ namespace Dapper.Builder
         /// </summary>
         /// <typeparam name="UEntity">The entity to take the name from</typeparam>
         IQueryBuilder<TEntity> Columns<UEntity>(params string[] columns) where UEntity : new();
-        
+
         /// <summary>
         /// Creates a sub query in the query
         /// </summary>
