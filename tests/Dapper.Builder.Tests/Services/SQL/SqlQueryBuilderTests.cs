@@ -276,5 +276,33 @@ namespace Dapper.Builder.Tests.Services
                          , 0);
 
         }
+
+        [TestMethod]
+        public void UpdateMultipleUnsorted()
+        {
+
+            var queryString = queryBuilder.Columns(
+                nameof(UserMock.Email),
+                nameof(UserMock.Independent),
+                nameof(UserMock.FirstName),
+                nameof(UserMock.LastName))
+                .Where(user => user.Id == 1).GetUpdateString(
+                new UserMock
+                {
+                    FirstName = "Misha",
+                    LastName = "Tarnortusky",
+                    Independent = true,
+                    Email = "Misha130@gmail.com"
+                });
+            Assert.AreEqual(
+                      string.Compare("UPDATE [Users] SET [Users].[Email] = @2, [Users].[Independent] = @3, [Users].[FirstName] = @4, [Users].[LastName] = @5 WHERE ([Users].[Id] = @1)",
+                      queryString.Query,
+                      CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                      , 0);
+            Assert.IsTrue((long)queryString.Parameters["1"] == 1);
+            Assert.IsTrue((string)queryString.Parameters["2"] == "Misha130@gmail.com");
+            Assert.IsTrue((bool)queryString.Parameters["3"] == true);
+        }
+
     }
 }
