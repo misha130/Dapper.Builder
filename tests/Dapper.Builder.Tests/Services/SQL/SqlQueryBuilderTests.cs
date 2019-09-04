@@ -304,5 +304,26 @@ namespace Dapper.Builder.Tests.Services
             Assert.IsTrue((bool)queryString.Parameters["3"] == true);
         }
 
+        [TestMethod]
+        public void InsertWithEnum()
+        {
+            IQueryBuilder<Component> queryBuilderComp = Resolve<IQueryBuilder<Component>>();
+            var guid = System.Guid.NewGuid().ToString();
+            var queryString = queryBuilderComp.GetInsertString(new Component
+            {
+                ComponentType = ComponentType.Complicated,
+                Name = "Component Name",
+                Url = guid
+            });
+            Assert.AreEqual(
+                   string.Compare("INSERT INTO [Components] ([Components].[ComponentType], [Components].[Name], [Components].[Url]) VALUES (@1, @2, @3);SELECT @@IDENTITY from [Components]",
+                   queryString.Query,
+                   CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                   , 0);
+            Assert.IsTrue((ComponentType)queryString.Parameters["1"] == ComponentType.Complicated);
+            Assert.IsTrue((string)queryString.Parameters["2"] == "Component Name");
+            Assert.IsTrue((string)queryString.Parameters["3"] == guid);
+        }
+
     }
 }

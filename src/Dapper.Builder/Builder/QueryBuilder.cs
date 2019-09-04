@@ -369,28 +369,28 @@ namespace Dapper.Builder
 
         public virtual QueryResult GetInsertString(TEntity entity)
         {
-            // processes!
             entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
 
             // here should be implemented joins and select on insert
             StringBuilder query = new StringBuilder();
             query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
-
+            int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
 
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))})");
-
             query.Append(";");
 
             query.Append($"SELECT @@IDENTITY from {dependencies.NamingStrategy.GetTableName<TEntity>()}");
-            Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
+            Options.ParamCount = Options.Parameters.Count + 1;
+            Options.Parameters.Merge(entity.ToDictionary( ref Options.ParamCount, columns));
             return new QueryResult
             {
                 Query = query.ToString(),
                 Parameters = Options.Parameters,
                 Count = Options.ParamCount
             };
+                      
         }
 
         public QueryResult GetInsertString(IEnumerable<TEntity> entities)

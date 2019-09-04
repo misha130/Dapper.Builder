@@ -42,4 +42,20 @@ namespace Dapper.Builder.Tests
         public System.DateTime ExpirationDate { get; set; }
         public long UserId { get; set; }
     }
+
+    [Table("Components")]
+    public class Component
+    {
+        public long Id { get; set; }
+        public ComponentType ComponentType { get; set; }
+        public string Name { get; set; }
+        public string Url { get; set; }
+    }
+
+    public enum ComponentType
+    {
+        Simple = 1,
+        Complicated = 2,
+        
+    }
 }
