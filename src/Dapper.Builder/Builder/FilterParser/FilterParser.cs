@@ -87,7 +87,8 @@ namespace Dapper.Builder.Services
                 }
                 if (value is string)
                 {
-                    value = prefix + (string)value + postfix;
+                    value = $"{prefix}'{(string)value}'{postfix}";
+                    return IsSql(value as string);
                 }
                 if (isUnary && value is bool)
                 {

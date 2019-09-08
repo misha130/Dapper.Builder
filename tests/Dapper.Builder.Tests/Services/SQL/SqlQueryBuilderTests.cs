@@ -325,5 +325,17 @@ namespace Dapper.Builder.Tests.Services
             Assert.IsTrue((string)queryString.Parameters["3"] == guid);
         }
 
+
+        [TestMethod]
+        public void QueryWithUnderscoreToLower()
+        {
+            var testName = "TEST_TEST";
+            var queryString = queryBuilder.Where(a => (a.FirstName + "_" + a.LastName).ToLower() == testName).GetQueryString();
+            Assert.AreEqual(
+                          string.Compare("SELECT * FROM [Users] WHERE (LOWER(([Users].[FirstName] + '_') + [Users].[LastName]) = @1)",
+                          queryString.Query,
+                          CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                          , 0);
+        }
     }
 }
