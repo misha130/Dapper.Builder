@@ -107,11 +107,12 @@ namespace Dapper.Builder.Services
                 if (member.Member is FieldInfo)
                 {
                     var value = GetValue(member);
+                    var parameter = IsParameter(i++, value);
                     if (value is string)
                     {
-                        value = prefix + (string)value + postfix;
+                        parameter.Query = prefix + parameter.Query + postfix;
                     }
-                    return IsParameter(i++, value);
+                    return parameter;
                 }
                 try
                 {
