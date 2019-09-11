@@ -85,10 +85,25 @@ namespace Dapper.Builder.Services
                 {
                     return IsSql(value.ToString());
                 }
-                if (value is string)
+                if (value is string valString)
                 {
-                    value = $"{prefix}'{(string)value}'{postfix}";
-                    return IsSql(value as string);
+                    if (prefix == "%")
+                    {
+                        valString = $"'{prefix}{valString}";
+                    }
+                    else
+                    {
+                        valString = $"{prefix}{valString}'";
+                    }
+                    if (postfix == "%")
+                    {
+                        valString = $"{valString}{postfix}'";
+                    }
+                    else
+                    {
+                        valString = $"{valString}'{postfix}";
+                    }
+                    return IsSql(valString);
                 }
                 if (isUnary && value is bool)
                 {

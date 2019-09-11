@@ -100,7 +100,7 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLower() == "Misha").GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = 'Misha')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
@@ -123,7 +123,7 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLowerInvariant() == "Misha").GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = 'Misha')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
@@ -134,7 +134,7 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToUpperInvariant() == "Misha").GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = 'Misha')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
@@ -145,7 +145,7 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToUpper() == "Misha").GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = 'Misha')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
@@ -168,11 +168,10 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.StartsWith("M")).GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE 'M%')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
-            Assert.AreEqual("M%", queryString.Parameters.Values.First());
         }
 
         [TestMethod]
@@ -180,11 +179,10 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.EndsWith("M")).GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE '%M')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
-            Assert.AreEqual("%M", queryString.Parameters.Values.First());
         }
 
         [TestMethod]
@@ -192,11 +190,10 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.Contains("M")).GetQueryString();
             Assert.AreEqual(
-                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE @1)",
+                          string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE '%M%')",
                           queryString.Query,
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
-            Assert.AreEqual("%M%", queryString.Parameters.Values.First());
         }
 
         //[TestMethod, Description("lmao it doesn't actually work, you have to do == false/true")]
