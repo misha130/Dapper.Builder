@@ -67,6 +67,20 @@ namespace Dapper.Builder
         /// <param name="columns"></param>
         IQueryBuilder<TEntity> Columns(Expression<Func<TEntity, object>> columns);
 
+
+        /// <summary>
+        /// An expression that represents the columns to exclude, usually an anonymous object
+        /// </summary>
+        /// <param name="columns"></param>
+        IQueryBuilder<TEntity> ExcludeColumns<UEntity>(Expression<Func<UEntity, object>> columns) where UEntity : new();
+
+
+        /// <summary>
+        /// An expression that represents the columns to exclude, usually an anonymous object
+        /// </summary>
+        /// <param name="columns"></param>
+        IQueryBuilder<TEntity> ExcludeColumns(Expression<Func<TEntity, object>> columns);
+
         /// <summary>
         /// The columns that should be in the query, not from the main entity
         /// </summary>

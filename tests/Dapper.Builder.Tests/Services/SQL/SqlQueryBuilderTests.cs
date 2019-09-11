@@ -337,5 +337,66 @@ namespace Dapper.Builder.Tests.Services
                           CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                           , 0);
         }
+
+        [TestMethod]
+        public void UpdateWithExcludeColumns()
+        {
+            var userMock = new UserMock();
+            var queryString = queryBuilder.ExcludeColumns(user => new { user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent, user.Picture })
+                .GetUpdateString(userMock);
+            Assert.AreEqual(
+                       string.Compare("UPDATE [Users] SET [Users].[Email] = @1",
+                       queryString.Query,
+                       CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                       , 0);
+        }
+
+        [TestMethod]
+        public void InsertWithExcludeColumns()
+        {
+            var userMock = new UserMock();
+            var queryString = queryBuilder.ExcludeColumns(user => new { user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent, user.Picture })
+                .GetInsertString(userMock);
+            Assert.AreEqual(
+                       string.Compare("INSERT INTO [USERS] ([Users].[Email]) VALUES(@1);SELECT @@IDENTITY from [Users]",
+                       queryString.Query,
+                       CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                       , 0);
+        }
+
+        [TestMethod]
+        public void SelectWithColumnsAndExclude()
+        {
+            var queryString = queryBuilder.Columns(c => c.Email).ExcludeColumns(user => new { user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent, user.Picture })
+                .GetQueryString();
+            Assert.AreEqual(
+                       string.Compare("SELECT [Users].[Email] From [Users]",
+                       queryString.Query,
+                       CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                       , 0);
+        }
+
+        [TestMethod]
+        public void SelectWithExclude()
+        {
+            var queryString = queryBuilder
+                .ExcludeColumns(user => new
+                {
+                    user.PasswordHash,
+                    user.Assets,
+                    user.Contracts,
+                    user.FirstName,
+                    user.LastName,
+                    user.Independent,
+                    user.Picture,
+                    user.Id
+                })
+                .GetQueryString();
+            Assert.AreEqual(
+                       string.Compare("SELECT [Users].[Email] From [Users]",
+                       queryString.Query,
+                       CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                       , 0);
+        }
     }
 }

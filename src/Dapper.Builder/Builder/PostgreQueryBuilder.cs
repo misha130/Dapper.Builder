@@ -35,6 +35,7 @@ namespace Dapper.Builder.Services
             dependencies.ProcessHandler.PipeThrough(this);
 
             StringBuilder query = new StringBuilder();
+            IEnumerable<string> columns = Options.SelectColumns;
             query.Append("SELECT ");
             if (Options.Distinct)
             {
@@ -46,15 +47,27 @@ namespace Dapper.Builder.Services
             }
             else
             {
-                if (Options.SelectColumns.Any())
+                if (columns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc =>
+                    columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                    query.Append(string.Join(",", columns.Select(sc =>
                     dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
                     query.Append(" ");
                 }
                 else
                 {
-                    query.Append("* ");
+                    if (Options.ExcludeColumns.Any())
+                    {
+                        columns = dependencies.PropertyParser.Value.Parse<TEntity>(e => new TEntity());
+                        columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                        query.Append(string.Join(",", columns.Select(sc =>
+                        dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                        query.Append(" ");
+                    }
+                    else
+                    {
+                        query.Append("* ");
+                    }
                 }
                 if (Options.Subqueries.Any())
                 {
@@ -104,8 +117,8 @@ namespace Dapper.Builder.Services
                 {
                     if (Options.JsonPrimitive)
                     {
-                        if (Options.SelectColumns.Count > 1) throw new ArgumentException("Json primitive support only one column");
-                        var forArrayJsonQuery = $@"select array_to_json(array_agg({dependencies.NamingStrategy.GetTableAndColumnName<TEntity>($"t.{Options.SelectColumns.FirstOrDefault()}")})) from ( {query})  t";
+                        if (columns.Count() > 1) throw new ArgumentException("Json primitive support only one column");
+                        var forArrayJsonQuery = $@"select array_to_json(array_agg({dependencies.NamingStrategy.GetTableAndColumnName<TEntity>($"t.{columns.FirstOrDefault()}")})) from ( {query})  t";
                         query = new StringBuilder(forArrayJsonQuery);
                     }
                     else
@@ -141,6 +154,8 @@ namespace Dapper.Builder.Services
             IEnumerable<string> columns = Options.SelectColumns.Any() ?
                                           Options.SelectColumns :
                                           dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+
             int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => $"\"{d.ToCamelCase()}\""))})");
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $":{innerCount++}"))})");
@@ -167,6 +182,7 @@ namespace Dapper.Builder.Services
             IEnumerable<string> columns = Options.SelectColumns.Any() ?
                                           Options.SelectColumns :
                                          dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
             query.AppendLine("SET ");
             query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetColumnName<TEntity>(column)} = { parameterBinding }{ innerCount++}")));
 

@@ -90,6 +90,18 @@ namespace Dapper.Builder
             return this;
         }
 
+        public virtual IQueryBuilder<TEntity> ExcludeColumns<UEntity>(Expression<Func<UEntity, object>> properties) where UEntity : new()
+        {
+            Options.ExcludeColumns.AddRange(dependencies.PropertyParser.Value.Parse(properties));
+            return this;
+        }
+
+        public virtual IQueryBuilder<TEntity> ExcludeColumns(Expression<Func<TEntity, object>> properties)
+        {
+            Options.ExcludeColumns.AddRange(dependencies.PropertyParser.Value.Parse(properties));
+            return this;
+        }
+
         public virtual IQueryBuilder<TEntity> SubQuery<UEntity>(Func<IQueryBuilder<UEntity>, IQueryBuilder<UEntity>> query, string alias)
             where UEntity : new()
         {
@@ -228,6 +240,7 @@ namespace Dapper.Builder
             dependencies.ProcessHandler.PipeThrough(this);
 
             StringBuilder query = new StringBuilder();
+            IEnumerable<string> columns = Options.SelectColumns;
             query.Append("SELECT ");
             if (Options.Distinct)
             {
@@ -243,14 +256,27 @@ namespace Dapper.Builder
                 {
                     query.Append($"TOP {Options.Top.Value} ");
                 }
-                if (Options.SelectColumns.Any())
+                if (columns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc =>
-                   dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))) + " ");
+                    columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                    query.Append(string.Join(",", columns.Select(sc =>
+                    dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                    query.Append(" ");
                 }
                 else
                 {
-                    query.Append("* ");
+                    if (Options.ExcludeColumns.Any())
+                    {
+                        columns = dependencies.PropertyParser.Value.Parse<TEntity>(e => new TEntity());
+                        columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                        query.Append(string.Join(",", columns.Select(sc =>
+                        dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                        query.Append(" ");
+                    }
+                    else
+                    {
+                        query.Append("* ");
+                    }
                 }
                 if (Options.Subqueries.Any())
                 {
@@ -375,6 +401,8 @@ namespace Dapper.Builder
             StringBuilder query = new StringBuilder();
             query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+
             int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
 
@@ -383,14 +411,14 @@ namespace Dapper.Builder
 
             query.Append($"SELECT @@IDENTITY from {dependencies.NamingStrategy.GetTableName<TEntity>()}");
             Options.ParamCount = Options.Parameters.Count + 1;
-            Options.Parameters.Merge(entity.ToDictionary( ref Options.ParamCount, columns));
+            Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
             {
                 Query = query.ToString(),
                 Parameters = Options.Parameters,
                 Count = Options.ParamCount
             };
-                      
+
         }
 
         public QueryResult GetInsertString(IEnumerable<TEntity> entities)
@@ -416,6 +444,7 @@ namespace Dapper.Builder
             query.Append($"UPDATE {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             int innerCount = Options.ParamCount;
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
             query.AppendLine("SET ");
             query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(column)} = {parameterBinding}{innerCount++}")));
 
@@ -558,6 +587,7 @@ namespace Dapper.Builder
         public List<string> Subqueries = new List<string>();
         public List<string> GroupingColumns = new List<string>();
         public List<string> SortColumns = new List<string>();
+        public List<string> ExcludeColumns = new List<string>();
         public List<string> WhereStrings = new List<string>();
         public List<JoinQuery> JoinQueries = new List<JoinQuery>();
         public Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> Action;
@@ -576,6 +606,7 @@ namespace Dapper.Builder
             queryOptions.ParentAlias = this.ParentAlias;
             queryOptions.Skip = this.Skip;
             queryOptions.Action = this.Action;
+            queryOptions.ExcludeColumns = this.ExcludeColumns.Select(x => x).ToList();
             queryOptions.SelectColumns = this.SelectColumns.Select(x => x).ToList();
             queryOptions.Subqueries = this.Subqueries.Select(x => x).ToList();
             queryOptions.GroupingColumns = this.GroupingColumns.Select(x => x).ToList();

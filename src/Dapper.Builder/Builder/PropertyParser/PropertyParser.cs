@@ -22,6 +22,17 @@ namespace Dapper.Builder.Services
             }
             if ((expression.Body is UnaryExpression unarExp))
             {
+                if (unarExp.Operand is NewExpression newUExp)
+                {
+                    var accessor = TypeAccessor.Create(newUExp.Type);
+                    foreach (var member in accessor.GetMembers())
+                    {
+                        if (Validate<TEntity>(member.Name))
+                        {
+                            yield return member.Name;
+                        }
+                    }
+                }
                 if (unarExp.Operand is MemberExpression omemExp)
                 {
                     if (Validate<TEntity>(omemExp.Member.Name))
@@ -34,6 +45,17 @@ namespace Dapper.Builder.Services
                     foreach (var name in GetRelevantProperties<TEntity>(paramExp.Type))
                     {
                         yield return name;
+                    }
+                }
+            }
+            if (expression.Body is NewExpression newExp)
+            {
+                var accessor = TypeAccessor.Create(newExp.Type);
+                foreach (var member in accessor.GetMembers())
+                {
+                    if (Validate<TEntity>(member.Name))
+                    {
+                        yield return member.Name;
                     }
                 }
             }
