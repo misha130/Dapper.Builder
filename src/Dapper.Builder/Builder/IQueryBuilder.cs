@@ -241,6 +241,12 @@ namespace Dapper.Builder
         /// </summary>
         /// <returns>Returns id of inserted entity</returns>
         Task<long> ExecuteInsertAsync(TEntity entity);
+
+        /// <summary>
+        /// Clones builder instance .
+        /// </summary>
+        /// <returns>Cloned builder</returns>
+        IQueryBuilder<TEntity> Clone();
     }
 
 }

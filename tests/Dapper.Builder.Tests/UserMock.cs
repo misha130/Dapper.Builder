@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
+ 
 namespace BR.POCO.DB
 {
     [Table("Users")]

@@ -210,6 +210,13 @@ namespace Dapper.Builder
             return this;
         }
 
+        public IQueryBuilder<TEntity> Clone()
+        {
+            var builder = dependencies.ResolveService<IQueryBuilder<TEntity>>();
+            (builder as QueryBuilder<TEntity>).Options = Options.DeepClone();
+            return builder;
+        }
+
         public virtual QueryResult GetQueryString()
         {
             // pipes!
@@ -523,7 +530,7 @@ namespace Dapper.Builder
         public int Count { get; set; }
     }
 
-    public class QueryBuilderOptions<TEntity>
+    public partial class QueryBuilderOptions<TEntity>
     {
         public bool Distinct = false;
         public bool Count = false;
@@ -540,10 +547,46 @@ namespace Dapper.Builder
         public List<string> SortColumns = new List<string>();
         public List<string> WhereStrings = new List<string>();
         public List<JoinQuery> JoinQueries = new List<JoinQuery>();
+        public Dictionary<string, string> SelectColumnsAliases = new Dictionary<string, string>();
         public Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> Action;
         public Dictionary<string, object> Parameters = new Dictionary<string, object>();
     }
-
+    public partial class QueryBuilderOptions<TEntity> : ICloneable
+    {
+        public object Clone()
+        {
+            var queryOptions = new QueryBuilderOptions<TEntity>
+            {
+                Json = this.Json,
+                Distinct = this.Distinct,
+                Count = this.Count,
+                JsonPrimitive = this.JsonPrimitive,
+                ParamCount = this.ParamCount,
+                Top = this.Top,
+                Alias = this.Alias,
+                ParentAlias = this.ParentAlias,
+                Skip = this.Skip,
+                Action = this.Action,
+                SelectColumns = this.SelectColumns.Select(x => x).ToList(),
+                Subqueries = this.Subqueries.Select(x => x).ToList(),
+                GroupingColumns = this.GroupingColumns.Select(x => x).ToList(),
+                SortColumns = this.SortColumns.Select(x => x).ToList(),
+                WhereStrings = this.WhereStrings.Select(x => x).ToList(),
+                JoinQueries = this.JoinQueries.Select(x => x).ToList(),
+                Parameters = new Dictionary<string, object>()
+            };
+            foreach (var param in this.Parameters)
+            {
+                queryOptions.Parameters.Add(param.Key, param.Value);
+            }
+            queryOptions.SelectColumnsAliases = new Dictionary<string, string>();
+            foreach (var param in this.SelectColumnsAliases)
+            {
+                queryOptions.SelectColumnsAliases.Add(param.Key, param.Value);
+            }
+            return queryOptions;
+        }
+    }
     public class JoinQuery
     {
         public string Table { get; set; }
