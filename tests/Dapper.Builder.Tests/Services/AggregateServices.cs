@@ -1,5 +1,4 @@
-﻿using BR.POCO.DB;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
 namespace Dapper.Builder.Tests.Services

@@ -27,8 +27,16 @@ namespace Dapper.Builder
         /// <typeparam name="UEntity">Some entity that was joined</typeparam>
         /// <param name="predicate">The expression that represents the condition</param>
         IQueryBuilder<TEntity> Where<UEntity>(Expression<Func<TEntity, UEntity, bool>> predicate) where UEntity : new();
-
-
+        /// <summary>
+        /// Adds a where condition to the query to two unrelated entities
+        /// </summary>
+        /// <typeparam name="U"></typeparam>
+        /// <typeparam name="W"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IQueryBuilder<TEntity> Where<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> predicate)
+        where UEntity : new()
+        where WEntity : new();
         /// <summary>
         /// Tells to add a distinct to the query
         /// </summary>
@@ -59,12 +67,26 @@ namespace Dapper.Builder
         /// <param name="columns"></param>
         IQueryBuilder<TEntity> Columns(Expression<Func<TEntity, object>> columns);
 
+
+        /// <summary>
+        /// An expression that represents the columns to exclude, usually an anonymous object
+        /// </summary>
+        /// <param name="columns"></param>
+        IQueryBuilder<TEntity> ExcludeColumns<UEntity>(Expression<Func<UEntity, object>> columns) where UEntity : new();
+
+
+        /// <summary>
+        /// An expression that represents the columns to exclude, usually an anonymous object
+        /// </summary>
+        /// <param name="columns"></param>
+        IQueryBuilder<TEntity> ExcludeColumns(Expression<Func<TEntity, object>> columns);
+
         /// <summary>
         /// The columns that should be in the query, not from the main entity
         /// </summary>
         /// <typeparam name="UEntity">The entity to take the name from</typeparam>
         IQueryBuilder<TEntity> Columns<UEntity>(params string[] columns) where UEntity : new();
-        
+
         /// <summary>
         /// Creates a sub query in the query
         /// </summary>
@@ -243,10 +265,10 @@ namespace Dapper.Builder
         Task<long> ExecuteInsertAsync(TEntity entity);
 
         /// <summary>
-        /// Clones builder instance .
+        /// Clones an instancee of the current builder with the options
         /// </summary>
-        /// <returns>Cloned builder</returns>
-        IQueryBuilder<TEntity> Clone();
+        /// <returns></returns>
+        IQueryBuilder<TEntity> CloneInstance();
     }
 
 }

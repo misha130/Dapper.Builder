@@ -32,21 +32,30 @@ namespace Dapper.Builder.Services
         }
         public QueryResult Parse(Expression<Func<TEntity, bool>> expression, ref int i)
         {
-            return Recurse<TEntity>(ref i, expression.Body, isUnary: true);
+            return Recurse<TEntity>(ref i, expression.Body, true);
         }
 
         public QueryResult Parse<UEntity>(Expression<Func<TEntity, UEntity, bool>> expression, ref int i)
         where UEntity : new()
         {
-            return Recurse<UEntity>(ref i, expression.Body, isUnary: true);
+            return Recurse<UEntity>(ref i, expression.Body, true);
         }
 
         public QueryResult Parse<UEntity, WEntity>(Expression<Func<UEntity, WEntity, bool>> expression, ref int i)
         where UEntity : new()
         where WEntity : new()
         {
+            return Recurse<UEntity>(ref i, expression.Body, true);
+        }
+
+        public QueryResult Parse<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> expression, ref int i)
+            where UEntity : new()
+            where WEntity : new()
+        {
             return Recurse<UEntity>(ref i, expression.Body, isUnary: true);
         }
+
+
         protected virtual QueryResult Recurse<UEntity>(ref int i, Expression expression, bool isUnary = false, string prefix = null, string postfix = null)
         where UEntity : new()
         {
@@ -58,7 +67,15 @@ namespace Dapper.Builder.Services
             if (expression is BinaryExpression)
             {
                 var body = (BinaryExpression)expression;
-                return Concat(Recurse<UEntity>(ref i, body.Left), NodeTypeToString(body.NodeType), Recurse<UEntity>(ref i, body.Right));
+                if (body.NodeType == ExpressionType.ArrayIndex)
+                {
+                    var arrayValue = Expression.Lambda(body).Compile().DynamicInvoke();
+                    return IsParameter(i++, arrayValue);
+                }
+                else
+                {
+                    return Concat(Recurse<UEntity>(ref i, body.Left), NodeTypeToString(body.NodeType), Recurse<UEntity>(ref i, body.Right));
+                }
             }
             if (expression is ConstantExpression)
             {
@@ -68,13 +85,33 @@ namespace Dapper.Builder.Services
                 {
                     return IsSql(value.ToString());
                 }
-                if (value is string)
+                if (value is string valString)
                 {
-                    value = prefix + (string)value + postfix;
+                    if (prefix == "%")
+                    {
+                        valString = $"'{prefix}{valString}";
+                    }
+                    else
+                    {
+                        valString = $"{prefix}{valString}'";
+                    }
+                    if (postfix == "%")
+                    {
+                        valString = $"{valString}{postfix}'";
+                    }
+                    else
+                    {
+                        valString = $"{valString}'{postfix}";
+                    }
+                    return IsSql(valString);
                 }
-                if (value is bool && isUnary)
+                if (isUnary && value is bool)
                 {
-                    return Concat(IsParameter(i++, value), "=", IsSql("1"));
+                    return Concat(IsParameter(i++, value), " = ", IsSql("1"));
+                }
+                if (value == null)
+                {
+                    return IsSql("null");
                 }
                 return IsParameter(i++, value);
             }
@@ -82,10 +119,22 @@ namespace Dapper.Builder.Services
             {
 
                 var member = (MemberExpression)expression;
+                if (member.Member is FieldInfo)
+                {
+                    var value = GetValue(member);
+                    var parameter = IsParameter(i++, value);
+                    if (value is string)
+                    {
+                        parameter.Query = prefix + parameter.Query + postfix;
+                    }
+                    return parameter;
+                }
                 try
                 {
                     var value = Expression.Lambda(expression).Compile().DynamicInvoke();
-                    return IsParameter(i++, value);
+                    var parameter = IsParameter(i++, value);
+                    parameter.Query = prefix + parameter.Query + postfix;
+                    return parameter;
                 }
                 catch
                 {
@@ -98,7 +147,7 @@ namespace Dapper.Builder.Services
                     var colName = property.Name;
                     if (isUnary && member.Type == typeof(bool))
                     {
-                        return Concat(Recurse<UEntity>(ref i, expression), "=", IsParameter(i++, true));
+                        return Concat(Recurse<UEntity>(ref i, expression), " = ", IsParameter(i++, true));
                     }
                     var type = member.Expression.Type;
                     if (type.IsInterface)
@@ -119,7 +168,7 @@ namespace Dapper.Builder.Services
                         tableName = _namingService.GetTableName(type);
                     }
 
-                    return IsSql($"{tableName}.[{colName}]");
+                    return IsSql($"{prefix}{tableName}.[{colName}]{postfix}");
                 }
                 if (member.Member is FieldInfo)
                 {
@@ -138,15 +187,15 @@ namespace Dapper.Builder.Services
                 // LIKE queries:
                 if (methodCall.Method == typeof(string).GetMethod("Contains", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%", postfix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%", postfix: "%"));
                 }
                 if (methodCall.Method == typeof(string).GetMethod("StartsWith", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], postfix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], postfix: "%"));
                 }
                 if (methodCall.Method == typeof(string).GetMethod("EndsWith", new[] { typeof(string) }))
                 {
-                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), "LIKE", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%"));
+                    return Concat(Recurse<UEntity>(ref i, methodCall.Object), " LIKE ", Recurse<UEntity>(ref i, methodCall.Arguments[0], prefix: "%"));
                 }
                 // IN queries:
                 if (methodCall.Method.Name == "Contains")
@@ -168,12 +217,30 @@ namespace Dapper.Builder.Services
                         throw new Exception("Unsupported method call: " + methodCall.Method.Name);
                     }
                     var values = (IEnumerable)GetValue(collection);
-                    return Concat(Recurse<UEntity>(ref i, property), "IN", IsCollection(ref i, values));
+                    return Concat(Recurse<UEntity>(ref i, property), " IN ", IsCollection(ref i, values));
+                }
+                if (methodCall.Method.Name == nameof(string.ToLower)
+                    || methodCall.Method.Name == nameof(string.ToLowerInvariant))
+                {
+                    return Concat(IsSql("LOWER"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", ")"));
+                }
+                if (methodCall.Method.Name == nameof(string.ToUpper)
+                   || methodCall.Method.Name == nameof(string.ToUpperInvariant))
+                {
+                    return Concat(IsSql("UPPER"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", ")"));
                 }
                 try
                 {
                     var value = Expression.Lambda(expression).Compile().DynamicInvoke();
+                    if (value is string)
+                    {
+                        value = prefix + (string)value + postfix;
+                    }
                     return IsParameter(i++, value);
+                }
+                catch
+                {
+
                 }
                 finally
                 {
@@ -208,48 +275,71 @@ namespace Dapper.Builder.Services
 
         protected static string NodeTypeToString(ExpressionType nodeType)
         {
+            var @operator = string.Empty;
             switch (nodeType)
             {
                 case ExpressionType.Add:
-                    return "+";
+                    @operator = "+";
+                    break;
                 case ExpressionType.And:
-                    return "&";
+                    @operator = "&";
+                    break;
                 case ExpressionType.AndAlso:
-                    return "AND";
+                    @operator = "AND";
+                    break;
                 case ExpressionType.Divide:
-                    return "/";
+                    @operator = "/";
+                    break;
                 case ExpressionType.Equal:
-                    return "=";
+                    @operator = "=";
+                    break;
                 case ExpressionType.ExclusiveOr:
-                    return "^";
+                    @operator = "^";
+                    break;
                 case ExpressionType.GreaterThan:
-                    return ">";
+                    @operator = ">";
+                    break;
                 case ExpressionType.GreaterThanOrEqual:
-                    return ">=";
+                    @operator = ">=";
+                    break;
                 case ExpressionType.LessThan:
-                    return "<";
+                    @operator = "<";
+                    break;
                 case ExpressionType.LessThanOrEqual:
-                    return "<=";
+                    @operator = "<=";
+                    break;
                 case ExpressionType.Modulo:
-                    return "%";
+                    @operator = "%";
+                    break;
                 case ExpressionType.Multiply:
-                    return "*";
+                    @operator = "*";
+                    break;
                 case ExpressionType.Negate:
-                    return "-";
+                    @operator = "-";
+                    break;
                 case ExpressionType.Not:
-                    return "NOT";
+                    @operator = "NOT";
+                    break;
                 case ExpressionType.NotEqual:
-                    return "<>";
+                    @operator = "<>";
+                    break;
                 case ExpressionType.Or:
-                    return "|";
+                    @operator = "|";
+                    break;
                 case ExpressionType.OrElse:
-                    return "OR";
+                    @operator = "OR";
+                    break;
                 case ExpressionType.Subtract:
-                    return "-";
+                    @operator = "-";
+                    break;
                 case ExpressionType.Convert:
-                    return string.Empty;
+                    @operator = string.Empty;
+                    break;
+                default:
+                    throw new Exception($"Unsupported node type: {nodeType}");
             }
-            throw new Exception($"Unsupported node type: {nodeType}");
+            return $" {@operator} ";
+
         }
         protected virtual QueryResult IsSql(string sql)
         {
@@ -294,7 +384,7 @@ namespace Dapper.Builder.Services
             return
             new QueryResult
             {
-                Query = $"({@operator} {operand.Query})",
+                Query = $"({@operator}{operand.Query})",
                 Parameters = operand.Parameters,
             };
 
@@ -305,7 +395,7 @@ namespace Dapper.Builder.Services
         {
             string eqOperator;
 
-            if (left.Query == right.Query && @operator == "=")
+            if (left.Query == right.Query && @operator.Trim() == "=")
             {
                 // there is a check for the same type on an inner join, should change one alias to a parent alias
                 if (_parentAliases.ContainsKey(typeof(TEntity)))
@@ -313,7 +403,7 @@ namespace Dapper.Builder.Services
                     right.Query = right.Query.Replace($"{_alias}.", $"{_parentAliases[typeof(TEntity)]}.");
                 }
             }
-            if (right.Query.ToLower() == "null" && @operator == "=")
+            if (right.Query.ToLower() == "null" && @operator.Trim() == "=")
             {
                 eqOperator = "is";
             }
@@ -324,7 +414,7 @@ namespace Dapper.Builder.Services
             return
             new QueryResult
             {
-                Query = $"({left.Query} {eqOperator} {right.Query})",
+                Query = $"({left.Query}{eqOperator}{right.Query})",
                 Parameters = left.Parameters.Union(right.Parameters).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             };
         }

@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using BR.POCO.DB;
 using Dapper.Builder.Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

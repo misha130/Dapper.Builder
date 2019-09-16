@@ -61,15 +61,22 @@ namespace Dapper.Builder.Extensions
 
         public static Dictionary<string, object> ToDictionary<T>(this T obj, ref int id, IEnumerable<string> columns) where T : new()
         {
+            var dictionary = new Dictionary<string, object>();
             int count = id;
-            columns = columns.OrderBy(col => col);
-            var dictionary = obj.GetType()
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public).OrderBy(prop => prop.Name)
-            .Where(prop => columns.Any(col => col.ToLower() == prop.Name.ToLower()))
-            .ToDictionary(prop =>
-                (count++).ToString(),
-            prop => prop.GetValue(obj, null)
-            );
+            var properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (!columns.Any())
+            {
+                return properties.ToDictionary((key) => (count++).ToString(), p => p.GetValue(obj, null));
+            }
+            else
+            {
+                foreach (var column in columns)
+                {
+                    var property = properties.FirstOrDefault(p => string.Equals(column, p.Name, StringComparison.CurrentCultureIgnoreCase));
+                    if (property == null) continue;
+                    dictionary.Add((count++).ToString(), property.GetValue(obj, null));
+                }
+            }
             id = count;
             return dictionary;
         }

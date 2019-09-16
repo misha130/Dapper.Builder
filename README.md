@@ -6,7 +6,7 @@ This includes joins, sub queries with multiple database support (SQL, Postgre, S
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Autofac.svg)](https://www.nuget.org/packages/Dapper.Builder.Autofac)
 [![NuGet](https://img.shields.io/nuget/v/Dapper.Builder.Core.svg)](https://www.nuget.org/packages/Dapper.Builder.Core)
 
-
+[![Build Status](https://emdanet.visualstudio.com/Dapper.Builder/_apis/build/status/misha130.Dapper.Builder?branchName=master)](https://emdanet.visualstudio.com/Dapper.Builder/_build/latest?definitionId=4&branchName=master)
 ## Installation
 
 Autofac 
@@ -99,7 +99,6 @@ The same reason why IQueryable exists. So you could pass this along to other met
 	* Dapper has no out of the box support for Snowflake and their driver has no support for Dapper.
 * Aggregations - ie. sum, max, min, etc.
 * More methods to implement.
-* .Net Framework 4.6.2 support without any IoC library requirements.
 
 ### Contributors
 

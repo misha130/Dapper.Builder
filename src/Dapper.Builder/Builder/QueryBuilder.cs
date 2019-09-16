@@ -27,13 +27,7 @@ namespace Dapper.Builder
         protected virtual string parameterBinding => "@";
 
 
-        public IQueryBuilder<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
-        {
-            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
-            Options.WhereStrings.Add(whereResult.Query);
-            Options.Parameters.Merge(whereResult.Parameters);
-            return this;
-        }
+
 
         public void ParamCount(int count)
         {
@@ -46,8 +40,26 @@ namespace Dapper.Builder
             Options.WhereStrings.Add(whereResult.Query);
             Options.Parameters.Merge(whereResult.Parameters);
             return this;
-
         }
+
+        public IQueryBuilder<TEntity> Where<UEntity, WEntity>(Expression<Func<UEntity, WEntity, TEntity, bool>> predicate)
+        where UEntity : new()
+        where WEntity : new()
+        {
+            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
+            Options.WhereStrings.Add(whereResult.Query);
+            Options.Parameters.Merge(whereResult.Parameters);
+            return this;
+        }
+
+        public IQueryBuilder<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+        {
+            var whereResult = dependencies.FilterParser.Parse(predicate, ref Options.ParamCount);
+            Options.WhereStrings.Add(whereResult.Query);
+            Options.Parameters.Merge(whereResult.Parameters);
+            return this;
+        }
+
 
         public IQueryBuilder<TEntity> Json()
         {
@@ -78,6 +90,18 @@ namespace Dapper.Builder
             return this;
         }
 
+        public virtual IQueryBuilder<TEntity> ExcludeColumns<UEntity>(Expression<Func<UEntity, object>> properties) where UEntity : new()
+        {
+            Options.ExcludeColumns.AddRange(dependencies.PropertyParser.Value.Parse(properties));
+            return this;
+        }
+
+        public virtual IQueryBuilder<TEntity> ExcludeColumns(Expression<Func<TEntity, object>> properties)
+        {
+            Options.ExcludeColumns.AddRange(dependencies.PropertyParser.Value.Parse(properties));
+            return this;
+        }
+
         public virtual IQueryBuilder<TEntity> SubQuery<UEntity>(Func<IQueryBuilder<UEntity>, IQueryBuilder<UEntity>> query, string alias)
             where UEntity : new()
         {
@@ -88,7 +112,7 @@ namespace Dapper.Builder
             }
             var result = query(queryBuilder).GetQueryString();
             ParamCount(result.Count);
-            Options.Subqueries.Add($"({result.Query}) as {alias}");
+            Options.Subqueries.Add($"({result.Query}) as {alias} ");
             if (result.Parameters != null)
             {
                 Options.Parameters.Merge(result.Parameters);
@@ -223,6 +247,7 @@ namespace Dapper.Builder
             dependencies.ProcessHandler.PipeThrough(this);
 
             StringBuilder query = new StringBuilder();
+            IEnumerable<string> columns = Options.SelectColumns;
             query.Append("SELECT ");
             if (Options.Distinct)
             {
@@ -238,19 +263,32 @@ namespace Dapper.Builder
                 {
                     query.Append($"TOP {Options.Top.Value} ");
                 }
-                if (Options.SelectColumns.Any())
+                if (columns.Any())
                 {
-                    query.Append(string.Join(",", Options.SelectColumns.Select(sc =>
-                   dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))) + " ");
+                    columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                    query.Append(string.Join(",", columns.Select(sc =>
+                    dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                    query.Append(" ");
                 }
                 else
                 {
-                    query.Append("* ");
+                    if (Options.ExcludeColumns.Any())
+                    {
+                        columns = dependencies.PropertyParser.Value.Parse<TEntity>(e => new TEntity());
+                        columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
+                        query.Append(string.Join(",", columns.Select(sc =>
+                        dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                        query.Append(" ");
+                    }
+                    else
+                    {
+                        query.Append("* ");
+                    }
                 }
                 if (Options.Subqueries.Any())
                 {
                     query.Append(", ");
-                    query.Append(string.Join(",", Options.Subqueries + " "));
+                    query.Append(string.Join(", ", Options.Subqueries));
                 }
             }
 
@@ -364,21 +402,22 @@ namespace Dapper.Builder
 
         public virtual QueryResult GetInsertString(TEntity entity)
         {
-            // processes!
             entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
 
             // here should be implemented joins and select on insert
             StringBuilder query = new StringBuilder();
             query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
 
+            int innerCount = Options.Parameters.Count + 1;
             query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
 
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))})");
-
             query.Append(";");
 
             query.Append($"SELECT @@IDENTITY from {dependencies.NamingStrategy.GetTableName<TEntity>()}");
+            Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
             {
@@ -386,6 +425,7 @@ namespace Dapper.Builder
                 Parameters = Options.Parameters,
                 Count = Options.ParamCount
             };
+
         }
 
         public QueryResult GetInsertString(IEnumerable<TEntity> entities)
@@ -411,6 +451,7 @@ namespace Dapper.Builder
             query.Append($"UPDATE {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             int innerCount = Options.ParamCount;
             IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
             query.AppendLine("SET ");
             query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(column)} = {parameterBinding}{innerCount++}")));
 
@@ -510,6 +551,14 @@ namespace Dapper.Builder
             var query = GetInsertString(entity);
             return await dependencies.Context.QueryFirstOrDefaultAsync<long>(query.Query, query.Parameters);
         }
+
+        public IQueryBuilder<TEntity> CloneInstance()
+        {
+            var newBuilder = dependencies.ResolveService<IQueryBuilder<TEntity>>();
+            (newBuilder as QueryBuilder<TEntity>).Options = Options.Clone();
+
+            return newBuilder;
+        }
     }
 
     public class QueryResult
@@ -545,11 +594,41 @@ namespace Dapper.Builder
         public List<string> Subqueries = new List<string>();
         public List<string> GroupingColumns = new List<string>();
         public List<string> SortColumns = new List<string>();
+        public List<string> ExcludeColumns = new List<string>();
         public List<string> WhereStrings = new List<string>();
         public List<JoinQuery> JoinQueries = new List<JoinQuery>();
         public Dictionary<string, string> SelectColumnsAliases = new Dictionary<string, string>();
         public Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> Action;
         public Dictionary<string, object> Parameters = new Dictionary<string, object>();
+
+        public QueryBuilderOptions<TEntity> Clone()
+        {
+            var queryOptions = new QueryBuilderOptions<TEntity>();
+            queryOptions.Json = this.Json;
+            queryOptions.Distinct = this.Distinct;
+            queryOptions.Count = this.Count;
+            queryOptions.JsonPrimitive = this.JsonPrimitive;
+            queryOptions.ParamCount = this.ParamCount;
+            queryOptions.Top = this.Top;
+            queryOptions.Alias = this.Alias;
+            queryOptions.ParentAlias = this.ParentAlias;
+            queryOptions.Skip = this.Skip;
+            queryOptions.Action = this.Action;
+            queryOptions.ExcludeColumns = this.ExcludeColumns.Select(x => x).ToList();
+            queryOptions.SelectColumns = this.SelectColumns.Select(x => x).ToList();
+            queryOptions.Subqueries = this.Subqueries.Select(x => x).ToList();
+            queryOptions.GroupingColumns = this.GroupingColumns.Select(x => x).ToList();
+            queryOptions.SortColumns = this.SortColumns.Select(x => x).ToList();
+            queryOptions.WhereStrings = this.WhereStrings.Select(x => x).ToList();
+            queryOptions.JoinQueries = this.JoinQueries.Select(x => x).ToList();
+            queryOptions.Parameters = new Dictionary<string, object>();
+            foreach (var param in this.Parameters)
+            {
+                queryOptions.Parameters.Add(param.Key, param.Value);
+            }
+
+            return queryOptions;
+        }
     }
     public partial class QueryBuilderOptions<TEntity> : ICloneable
     {
