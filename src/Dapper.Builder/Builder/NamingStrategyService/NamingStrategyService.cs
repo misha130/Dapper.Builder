@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Dapper.Builder.Attributes;
+using System;
 using System.Linq;
-using System.Text;
 
 namespace Dapper.Builder.Services
 {
