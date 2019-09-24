@@ -4,7 +4,7 @@
     <Version>1.0.16</Version>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.60.6" />
+    <PackageReference Include="Dapper" Version="2.0.4" />
     <PackageReference Include="FastMember" Version="1.5.0" />
     <PackageReference Include="System.Text.Json" Version="4.6.0" />
   </ItemGroup>

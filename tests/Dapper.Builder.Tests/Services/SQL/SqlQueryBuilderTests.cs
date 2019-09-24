@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
@@ -41,6 +43,19 @@ namespace Dapper.Builder.Tests.Services
               CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
               , 0);
         }
+
+        [TestMethod]
+        public void QueryWithStringConstant()
+        {
+            var queryString = queryBuilder.Where((c) => c.Email == "misha130@gmail.com").GetQueryString();
+            Debug.WriteLine(queryString.Query);
+            Assert.AreEqual(
+              string.Compare("SELECT * FROM [Users] WHERE ([Users].[Email] = 'misha130@gmail.com')".Trim().ToLower(),
+              queryString.Query.Trim().ToLower(),
+              CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+              , 0);
+        }
+
 
         [TestMethod]
         public void QuerySingleColumnById()

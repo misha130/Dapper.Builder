@@ -93,7 +93,7 @@ namespace Dapper.Builder.Services
                     }
                     else
                     {
-                        valString = $"{prefix}{valString}'";
+                        valString = $"{prefix}'{valString}";
                     }
                     if (postfix == "%")
                     {

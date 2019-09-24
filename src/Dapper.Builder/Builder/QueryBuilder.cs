@@ -234,13 +234,6 @@ namespace Dapper.Builder
             return this;
         }
 
-        public IQueryBuilder<TEntity> Clone()
-        {
-            var builder = dependencies.ResolveService<IQueryBuilder<TEntity>>();
-            (builder as QueryBuilder<TEntity>).Options = Options.DeepClone();
-            return builder;
-        }
-
         public virtual QueryResult GetQueryString()
         {
             // pipes!
