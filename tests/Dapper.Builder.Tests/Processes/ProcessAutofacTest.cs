@@ -1,9 +1,9 @@
 ﻿using Autofac;
 using Dapper.Builder.Autofac;
-using Microsoft.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 
 namespace Dapper.Builder.Tests.Processes
 {

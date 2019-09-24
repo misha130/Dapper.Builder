@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Dapper.Builder.Core;
 using Microsoft.Data.SqlClient;
-
 namespace Dapper.Builder.Tests
 {
     public class BaseTest

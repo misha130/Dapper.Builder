@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.24</Version>
+    <Version>0.1.0</Version>
     <Authors>Michael Tarnortusky</Authors>
     <Company />
     <Product>Dapper.Builder</Product>
@@ -19,6 +19,7 @@
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Dapper" Version="2.0.4" />
     <PackageReference Include="FastMember" Version="1.5.0" />
+    <PackageReference Include="System.Text.Json" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>
