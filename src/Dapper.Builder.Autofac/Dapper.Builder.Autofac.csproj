@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.24</Version>
+    <Version>0.0.25</Version>
     <Authors>Michael Tarnortusky</Authors>
     <Company />
     <Product>Dapper.Builder</Product>
@@ -14,7 +14,9 @@
     <PackageProjectUrl>https://github.com/misha130/Dapper.Builder</PackageProjectUrl>
     <PackageTags>Dapper Builder Autofac</PackageTags>
   </PropertyGroup>
-
+  <ItemGroup>
+    <None Include="..\..\readme.md" Pack="true" PackagePath=""/>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.3" />
     <PackageReference Include="Dapper" Version="1.60.6" />

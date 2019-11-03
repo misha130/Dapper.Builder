@@ -14,5 +14,8 @@ namespace Dapper.Builder.Services
         /// </summary>
         IEnumerable<string> Parse<TEntity>(Expression<Func<TEntity, object>> expression, bool validate = true) where TEntity : new();
 
+        IEnumerable<string> Parse<TEntity, UEntity>(Expression<Func<TEntity, UEntity>> expression,
+            bool validate = true) where TEntity : new();
+
     }
 }

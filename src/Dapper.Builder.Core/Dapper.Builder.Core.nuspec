@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>Dapper.Builder.Core</id>
-    <version>0.0.11</version>
+    <version>0.0.26</version>
     <authors>Michael Tarnortusky</authors>
     <owners>Michael Tarnortusky</owners>
     <licenseUrl>https://raw.githubusercontent.com/misha130/Dapper.Builder/master/LICENSE</licenseUrl>
@@ -21,5 +21,6 @@
   <files>
     <file src="bin\Release\netstandard2.0\Dapper.Builder.Core.dll" target="lib\netstandard2.0" />
     <file src="bin\Release\netstandard2.0\Dapper.Builder.dll" target="lib\netstandard2.0" />
+    
   </files>
 </package>

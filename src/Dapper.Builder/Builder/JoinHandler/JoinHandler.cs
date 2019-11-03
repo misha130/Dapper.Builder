@@ -13,7 +13,7 @@ namespace Dapper.Builder.Services {
         /// <summary>
         /// Converts type to join string for their relative database
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">Joiner type</param>
         /// <returns></returns>
         private string JoinString (JoinType type) {
             switch (type) {
@@ -25,8 +25,9 @@ namespace Dapper.Builder.Services {
                     return "LEFT JOIN";
                 case JoinType.Right:
                     return "RIGHT JOIN";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported join type");
             }
-            throw new ArgumentException ("Unsupported join type");
         }
     }
 }

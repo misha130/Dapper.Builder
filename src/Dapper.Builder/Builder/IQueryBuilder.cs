@@ -212,11 +212,19 @@ namespace Dapper.Builder
         /// Returns the insert query
         /// </summary>
         QueryResult GetInsertString(TEntity entity);
-
+        /// <summary>
+        /// Gets the insert query string.
+        /// </summary>
+        /// <typeparam name="UEntity">The type of the UEntity.</typeparam>
+        /// <param name="entity">The entity.</param>
+        /// <param name="property">The property to be returned.</param>
+        /// <returns>Returns the insert query</returns>
+        QueryResult GetInsertString<UEntity>(TEntity entity, Expression<Func<TEntity, UEntity>> property);
         /// <summary>
         /// Returns the insert query
         /// </summary>
         QueryResult GetInsertString(IEnumerable<TEntity> entity);
+        
 
         /// <summary>
         /// Returns the update query

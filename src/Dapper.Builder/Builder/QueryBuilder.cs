@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Dapper.Builder.Extensions;
+using Dapper.Builder.Processes;
+using Dapper.Builder.Services;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Data;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Dapper.Builder.Services;
-using Dapper.Builder.Processes;
-using Dapper.Builder.Extensions;
 
 namespace Dapper.Builder
 {
@@ -23,6 +23,7 @@ namespace Dapper.Builder
             this.dependencies = dependencies;
         }
         protected QueryBuilderOptions<TEntity> Options = new QueryBuilderOptions<TEntity>();
+        private IQueryBuilder<TEntity> _queryBuilderImplementation;
 
         protected virtual string parameterBinding => "@";
 
@@ -399,24 +400,50 @@ namespace Dapper.Builder
             Options.Action = action;
             return this;
         }
+        #region Insert String
 
         public virtual QueryResult GetInsertString(TEntity entity)
         {
             entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
-
             // here should be implemented joins and select on insert
-            StringBuilder query = new StringBuilder();
-            query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
-            IEnumerable<string> columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
-            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
-
-            int innerCount = Options.Parameters.Count + 1;
-            query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
-
-            query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))})");
-            query.Append(";");
-
+            var query = new StringBuilder();
+            var insertQueryPart = GetInsertQueryInsetPart(query);
+            query = insertQueryPart.quert;
+            var columns = insertQueryPart.columns;
+            query = GetInsertQueryValuesPart(query, columns);
             query.Append($"SELECT @@IDENTITY from {dependencies.NamingStrategy.GetTableName<TEntity>()}");
+            return GetQueryResult(entity, query, columns);
+        }
+
+        public virtual QueryResult GetInsertString<UEntity>(TEntity entity,Expression<Func<TEntity, UEntity>> property)
+        {
+            entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
+            var query = new StringBuilder();
+            var insertQueryPart = GetInsertQueryInsetPart(query);
+            query = insertQueryPart.quert;
+            var columns = insertQueryPart.columns;
+            query.Append($" OUTPUT INSERTED.{dependencies.PropertyParser.Value.Parse(property).FirstOrDefault()} ");
+            query = GetInsertQueryValuesPart(query, columns);
+            return GetQueryResult(entity, query, columns);
+        } 
+        private (StringBuilder quert,List<string> columns) GetInsertQueryInsetPart(StringBuilder query)
+        {
+            query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
+            var columns = Options.SelectColumns.Any() ? Options.SelectColumns : dependencies.PropertyParser.Value.Parse<TEntity>(e => e).ToList();
+            columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase))).ToList();
+
+            //int innerCount = Options.Parameters.Count + 1;
+            query.AppendLine($"({string.Join(", ", columns.Select(d => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(d)))})");
+            return (query,columns);
+        }
+
+        private StringBuilder GetInsertQueryValuesPart(StringBuilder query,List<string> columns)
+        {
+            query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))});");
+            return query;
+        }
+        private QueryResult GetQueryResult(TEntity entity, StringBuilder query, IEnumerable<string> columns)
+        {
             Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
             return new QueryResult
@@ -425,9 +452,8 @@ namespace Dapper.Builder
                 Parameters = Options.Parameters,
                 Count = Options.ParamCount
             };
-
         }
-
+        #endregion
         public QueryResult GetInsertString(IEnumerable<TEntity> entities)
         {
             if (!entities.Any())
@@ -441,6 +467,8 @@ namespace Dapper.Builder
                 Count = Options.ParamCount
             };
         }
+
+        
 
         public virtual QueryResult GetUpdateString(TEntity entity)
         {
@@ -637,7 +665,7 @@ namespace Dapper.Builder
             return queryOptions;
         }
     }
-    
+
     public class JoinQuery
     {
         public string Table { get; set; }

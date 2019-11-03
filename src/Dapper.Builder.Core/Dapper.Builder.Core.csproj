@@ -21,7 +21,9 @@
       <Pack>True</Pack>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="..\..\readme.md" Pack="true" PackagePath=""/>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.60.6" />
     <PackageReference Include="FastMember" Version="1.5.0" />

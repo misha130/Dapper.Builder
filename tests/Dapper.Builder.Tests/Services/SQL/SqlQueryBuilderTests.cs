@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace Dapper.Builder.Tests.Services
 {
@@ -9,6 +8,7 @@ namespace Dapper.Builder.Tests.Services
     public class SqlQueryBuilderTests : BaseTest
     {
         private IQueryBuilder<UserMock> queryBuilder => Resolve<IQueryBuilder<UserMock>>();
+        public TestContext TestContext { get; set; }
 
         [TestMethod]
         public void AllQuery()
@@ -351,7 +351,7 @@ namespace Dapper.Builder.Tests.Services
         [TestMethod]
         public void InsertWithExcludeColumns()
         {
-            var userMock = new UserMock();
+            var userMock = new UserMock() { };
             var queryString = queryBuilder.ExcludeColumns(user => new { user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent, user.Picture })
                 .GetInsertString(userMock);
             Assert.AreEqual(
@@ -371,6 +371,20 @@ namespace Dapper.Builder.Tests.Services
                        queryString.Query,
                        CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                        , 0);
+        }
+
+        [TestMethod]
+        public void InsertQueryWithReturnColumn()
+        {
+            var userMock = new UserMock();
+           
+            var queryString = queryBuilder.GetInsertString(userMock, um => um.Id);
+            TestContext.WriteLine(queryString.Query);
+            Assert.AreEqual(
+                string.Compare("INSERT INTO [Users] ([Users].[Email], [Users].[FirstName], [Users].[Independent], [Users].[LastName], [Users].[PasswordHash], [Users].[Picture])OUTPUT INSERTED.Id VALUES(@1, @2, @3, @4, @5, @6); ",
+                    queryString.Query,
+                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                , 0);
         }
 
         [TestMethod]
