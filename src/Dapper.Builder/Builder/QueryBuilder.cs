@@ -1,7 +1,6 @@
 ﻿using Dapper.Builder.Extensions;
 using Dapper.Builder.Processes;
 using Dapper.Builder.Services;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,9 +8,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper.Builder.Services;
-using Dapper.Builder.Processes;
-using Dapper.Builder.Extensions;
 using System.Text.Json;
 
 namespace Dapper.Builder

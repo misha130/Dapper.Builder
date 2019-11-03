@@ -1,6 +1,5 @@
 ﻿using Dapper.Builder.Attributes;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace Dapper.Builder.Services
