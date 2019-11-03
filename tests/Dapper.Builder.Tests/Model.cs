@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Dapper.Builder.Attributes;
+using System.Collections.Generic;
 
 namespace Dapper.Builder.Tests
 {
@@ -56,6 +56,6 @@ namespace Dapper.Builder.Tests
     {
         Simple = 1,
         Complicated = 2,
-        
+
     }
 }

@@ -9,6 +9,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper.Builder.Services;
+using Dapper.Builder.Processes;
+using Dapper.Builder.Extensions;
+using System.Text.Json;
 
 namespace Dapper.Builder
 {
@@ -235,13 +239,6 @@ namespace Dapper.Builder
             return this;
         }
 
-        public IQueryBuilder<TEntity> Clone()
-        {
-            var builder = dependencies.ResolveService<IQueryBuilder<TEntity>>();
-            (builder as QueryBuilder<TEntity>).Options = Options.DeepClone();
-            return builder;
-        }
-
         public virtual QueryResult GetQueryString()
         {
             // pipes!
@@ -353,7 +350,7 @@ namespace Dapper.Builder
             if (Options.Json)
             {
                 var jsonResult = await dependencies.Context.QueryAsync<TEntity>(built.Query, built.Parameters);
-                return JsonConvert.DeserializeObject<TEntity>(string.Join("", jsonResult));
+                return JsonSerializer.Deserialize<TEntity>(string.Join("", jsonResult));
             }
             return await dependencies.Context.QueryFirstOrDefaultAsync<TEntity>(built.Query, built.Parameters);
         }
@@ -366,7 +363,7 @@ namespace Dapper.Builder
             if (Options.Json)
             {
                 var jsonResult = await dependencies.Context.QueryAsync<UEntity>(built.Query, built.Parameters);
-                return JsonConvert.DeserializeObject<UEntity[]>(string.Join("", jsonResult)).FirstOrDefault();
+                return JsonSerializer.Deserialize<UEntity[]>(string.Join("", jsonResult)).FirstOrDefault();
             }
             return await dependencies.Context.QueryFirstOrDefaultAsync<UEntity>(built.Query, built.Parameters);
         }
@@ -381,7 +378,7 @@ namespace Dapper.Builder
                 {
                     return new List<TEntity>();
                 }
-                return JsonConvert.DeserializeObject<TEntity[]>(jsonResult);
+                return JsonSerializer.Deserialize<TEntity[]>(jsonResult);
             }
             if (Options.Action != null)
             {

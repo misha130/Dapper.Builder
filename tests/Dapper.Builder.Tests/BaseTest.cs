@@ -4,9 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using System.Data.SqlClient;
 using Dapper.Builder.Core;
-
+using Microsoft.Data.SqlClient;
 namespace Dapper.Builder.Tests
 {
     public class BaseTest

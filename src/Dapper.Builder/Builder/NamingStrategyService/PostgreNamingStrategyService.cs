@@ -1,6 +1,6 @@
-﻿using Dapper.Builder.Extensions;
+﻿using Dapper.Builder.Attributes;
+using Dapper.Builder.Extensions;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace Dapper.Builder.Services

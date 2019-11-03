@@ -3,7 +3,7 @@ using Dapper.Builder.Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace Dapper.Builder.Tests.Processes
 {
