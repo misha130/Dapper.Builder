@@ -35,6 +35,12 @@ namespace Dapper.Builder.Tests.Services
             Assert.AreEqual("SELECT * FROM [Users]".Trim(), queryString.Query.Trim());
         }
 
+        public void SingleQuery()
+        {
+            var queryString = queryBuilder.GetQueryString();
+            Assert.AreEqual("SELECT * FROM [Users]".Trim(), queryString.Query.Trim());
+        }
+
         [TestMethod]
         public void Top5Query()
         {
@@ -359,7 +365,7 @@ namespace Dapper.Builder.Tests.Services
                     });
             Assert.AreEqual(
                 string.Compare(
-                    "UPDATE [Users] SET [Users].[Email] = @2, [Users].[Independent] = @3, [Users].[FirstName] = @4, [Users].[LastName] = @5 WHERE ([Users].[Id] = @1)",
+                    "UPDATE [Users] SET [Email] = @2, [Independent] = @3, [FirstName] = @4, [LastName] = @5 WHERE ([Users].[Id] = @1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -381,7 +387,7 @@ namespace Dapper.Builder.Tests.Services
             });
             Assert.AreEqual(
                 string.Compare(
-                    "INSERT INTO [Components] ([Components].[ComponentType], [Components].[Name], [Components].[Url]) VALUES (@1, @2, @3);SELECT @@IDENTITY from [Components]",
+                    "INSERT INTO [Components] ([ComponentType], [Name], [Url]) VALUES (@1, @2, @3);SELECT LAST_INSERT_ROWID()",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -416,7 +422,7 @@ namespace Dapper.Builder.Tests.Services
                 })
                 .GetUpdateString(userMock);
             Assert.AreEqual(
-                string.Compare("UPDATE [Users] SET [Users].[Email] = @1",
+                string.Compare("UPDATE [Users] SET [Email] = @1",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -433,7 +439,7 @@ namespace Dapper.Builder.Tests.Services
                 })
                 .GetInsertString(userMock);
             Assert.AreEqual(
-                string.Compare("INSERT INTO [USERS] ([Users].[Email]) VALUES(@1);SELECT @@IDENTITY from [Users]",
+                string.Compare("INSERT INTO [USERS] ([Email]) VALUES(@1);SELECT LAST_INSERT_ROWID()",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);

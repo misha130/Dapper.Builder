@@ -419,7 +419,7 @@ namespace Dapper.Builder
             query = GetInsertQueryValuesPart(query, columns);
             return GetQueryResult(entity, query, columns);
         } 
-        private (StringBuilder quert,List<string> columns) GetInsertQueryInsetPart(StringBuilder query)
+        public virtual (StringBuilder quert,List<string> columns) GetInsertQueryInsetPart(StringBuilder query)
         {
             query.Append($"INSERT INTO {Dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             var columns = Options.SelectColumns.Any() ? Options.SelectColumns : Dependencies.PropertyParser.Value.Parse<TEntity>(e => e).ToList();
@@ -430,12 +430,12 @@ namespace Dapper.Builder
             return (query,columns);
         }
 
-        private StringBuilder GetInsertQueryValuesPart(StringBuilder query,List<string> columns)
+        protected virtual StringBuilder GetInsertQueryValuesPart(StringBuilder query,List<string> columns)
         {
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))});");
             return query;
         }
-        private QueryResult GetQueryResult(TEntity entity, StringBuilder query, IEnumerable<string> columns)
+        protected QueryResult GetQueryResult(TEntity entity, StringBuilder query, IEnumerable<string> columns)
         {
             Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));
