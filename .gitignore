@@ -10,3 +10,5 @@ packages
 TestResults
 Coverage
 Coverage.xml
+/src/Dapper.Builder/Dapper.Builder.csproj.DotSettings
+/tests/Dapper.Builder.Tests/Dapper.Builder.Tests.csproj.DotSettings
