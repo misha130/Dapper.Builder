@@ -22,12 +22,17 @@ namespace Dapper.Builder.Core
             CoreBuilderConfiguration configuration)
         {
             #region Sub services
+
             services.AddScoped<IDbConnection>(configuration.DbConnectionFactory);
             switch (configuration?.DatabaseType)
             {
                 case DatabaseType.SQL:
                 default:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SqlQueryBuilder<>));
+                    services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    break;
+                case DatabaseType.SQLite:
+                    services.AddTransient(typeof(IQueryBuilder<>), typeof(SqliteQueryBuilder<>));
                     services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
                     break;
                 case DatabaseType.PostgreSql:
@@ -39,21 +44,27 @@ namespace Dapper.Builder.Core
                     services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
                     break;
             }
+
             services.AddScoped(typeof(IJoinHandler), typeof(JoinHandler));
             services.AddScoped(typeof(IPropertyParser), typeof(PropertyParser));
             services.AddScoped(typeof(ISortHandler), typeof(SortHandler));
             services.AddScoped(typeof(INamingStrategyService), typeof(NamingStrategyService));
             services.AddScoped(typeof(IProcessHandler), typeof(ProcessHandler));
+
             #endregion
+
             #region Aggregation
+
             services.AddScoped(typeof(Lazy<IJoinHandler>));
             services.AddScoped(typeof(Lazy<IServiceProvider>));
             services.AddScoped(typeof(Lazy<ISortHandler>));
             services.AddScoped(typeof(Lazy<IPropertyParser>));
             services.AddScoped(typeof(IQueryBuilderDependencies<>), typeof(CoreQueryBuilderDependencies<>));
+
             #endregion
 
             #region Processes
+
             var proccesAndPipes = configuration.GetProcessAndPipes();
             foreach (var selectPipe in proccesAndPipes.SelectPipes)
             {
@@ -69,9 +80,10 @@ namespace Dapper.Builder.Core
             {
                 services.AddTransient(typeof(IUpdateProcess), updateProcess);
             }
+
             #endregion
+
             services.AddScoped<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
         }
-
     }
 }

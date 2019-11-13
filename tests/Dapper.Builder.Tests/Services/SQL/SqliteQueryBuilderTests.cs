@@ -1,29 +1,28 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac;
 using Dapper.Builder.Autofac;
+using Dapper.Builder.Services;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 
 namespace Dapper.Builder.Tests.Services
 {
     [TestClass]
-    public class SqlQueryBuilderTests : BaseTest
+    public class SqlliteQueryBuilderTests : BaseTest
     {
-        private static IQueryBuilder<UserMock> queryBuilder;
-        private TestContext TestContext { get; set; }
+        private IQueryBuilder<UserMock> queryBuilder;
 
         [TestInitialize]
-        public  void Init()
+        public void Init()
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule(new DapperBuilderModule(new AutofacBuilderConfiguration
             {
-                DatabaseType = DatabaseType.SQL,
-                DbConnectionFactory = (ser) => new SqlConnection("server=(local)")
+                DatabaseType = DatabaseType.SQLite,
+                DbConnectionFactory = (ser) => new SqlConnection("Data Source=:memory:")
             }));
             Container = containerBuilder.Build();
             queryBuilder = Container.Resolve<IQueryBuilder<UserMock>>();
@@ -42,7 +41,7 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Top(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT TOP 5 * FROM [Users]",
+                    "SELECT * FROM [Users] LIMIT 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -54,24 +53,25 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Top(5).Skip(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT * FROM [Users] OFFSET 5 ROWS FETCH NEXT 5 ROWS ONLY;",
+                    "SELECT * FROM [Users] LIMIT 5 OFFSET 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
-        
+
         [TestMethod]
         public void Skip5Query()
         {
             var queryString = queryBuilder.Skip(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT * FROM [Users] OFFSET 5 ROWS",
+                    "SELECT * FROM [Users] LIMIT -1 OFFSET 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
-        
+
+
         [TestMethod]
         public void AllQuerySingleColumnByExpression()
         {
@@ -108,7 +108,6 @@ namespace Dapper.Builder.Tests.Services
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
-
 
         [TestMethod]
         public void QuerySingleColumnById()
@@ -330,19 +329,16 @@ namespace Dapper.Builder.Tests.Services
         [TestMethod]
         public void QueryDoubleSubQuery()
         {
-            var queryString = queryBuilder
-                .SubQuery<AssetMock>(qb => qb.Where<UserMock>((asset, user) => asset.UserId == user.Id).Json(),
-                    nameof(UserMock.Assets))
-                .SubQuery<ContractMock>(qb => qb.Where<UserMock>((contract, user) => contract.UserId == user.Id).Json(),
-                    nameof(UserMock.Contracts))
-                .GetQueryString();
-
-            Assert.AreEqual(
-                string.Compare(
-                    "SELECT * , (SELECT * FROM [Assets] WHERE ([Assets].[UserId] = [Users].[Id]) FOR JSON PATH ) as Assets , (SELECT * FROM [Contracts] WHERE ([Contracts].[UserId] = [Users].[Id]) FOR JSON PATH ) as Contracts  FROM [Users]",
-                    queryString.Query,
-                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                , 0);
+            Assert.ThrowsException<NotSupportedException>(() =>
+            {
+                return queryBuilder
+                    .SubQuery<AssetMock>(qb => qb.Where<UserMock>((asset, user) => asset.UserId == user.Id).Json(),
+                        nameof(UserMock.Assets))
+                    .SubQuery<ContractMock>(
+                        qb => qb.Where<UserMock>((contract, user) => contract.UserId == user.Id).Json(),
+                        nameof(UserMock.Contracts))
+                    .GetQueryString();
+            });
         }
 
         [TestMethod]
@@ -357,7 +353,7 @@ namespace Dapper.Builder.Tests.Services
                     new UserMock
                     {
                         FirstName = "Misha",
-                        LastName = "Tarnortusky",
+                        LastName = "Trotsky",
                         Independent = true,
                         Email = "Misha130@gmail.com"
                     });
@@ -429,7 +425,7 @@ namespace Dapper.Builder.Tests.Services
         [TestMethod]
         public void InsertWithExcludeColumns()
         {
-            var userMock = new UserMock() { };
+            var userMock = new UserMock();
             var queryString = queryBuilder.ExcludeColumns(user => new
                 {
                     user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
@@ -454,21 +450,6 @@ namespace Dapper.Builder.Tests.Services
                 .GetQueryString();
             Assert.AreEqual(
                 string.Compare("SELECT [Users].[Email] From [Users]",
-                    queryString.Query,
-                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                , 0);
-        }
-
-        [TestMethod]
-        public void InsertQueryWithReturnColumn()
-        {
-            var userMock = new UserMock();
-
-            var queryString = queryBuilder.GetInsertString(userMock, um => um.Id);
-            TestContext.WriteLine(queryString.Query);
-            Assert.AreEqual(
-                string.Compare(
-                    "INSERT INTO [Users] ([Users].[Email], [Users].[FirstName], [Users].[Independent], [Users].[LastName], [Users].[PasswordHash], [Users].[Picture])OUTPUT INSERTED.Id VALUES(@1, @2, @3, @4, @5, @6); ",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);

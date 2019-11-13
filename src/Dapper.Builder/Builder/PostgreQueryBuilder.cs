@@ -32,7 +32,7 @@ namespace Dapper.Builder.Services
         public override QueryResult GetQueryString()
         {
             // pipes!
-            dependencies.ProcessHandler.PipeThrough(this);
+            Dependencies.ProcessHandler.PipeThrough(this);
 
             StringBuilder query = new StringBuilder();
             IEnumerable<string> columns = Options.SelectColumns;
@@ -51,17 +51,17 @@ namespace Dapper.Builder.Services
                 {
                     columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
                     query.Append(string.Join(",", columns.Select(sc =>
-                    dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                    Dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
                     query.Append(" ");
                 }
                 else
                 {
                     if (Options.ExcludeColumns.Any())
                     {
-                        columns = dependencies.PropertyParser.Value.Parse<TEntity>(e => new TEntity());
+                        columns = Dependencies.PropertyParser.Value.Parse<TEntity>(e => new TEntity());
                         columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
                         query.Append(string.Join(",", columns.Select(sc =>
-                        dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
+                        Dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(sc))));
                         query.Append(" ");
                     }
                     else
@@ -78,7 +78,7 @@ namespace Dapper.Builder.Services
 
             }
 
-            query.AppendLine($"FROM {dependencies.NamingStrategy.GetTableName<TEntity>()} {Options.Alias}");
+            query.AppendLine($"FROM {Dependencies.NamingStrategy.GetTableName<TEntity>()} {Options.Alias}");
 
             if (Options.JoinQueries.Any())
             {
@@ -96,7 +96,7 @@ namespace Dapper.Builder.Services
             if (Options.GroupingColumns.Any())
             {
                 query.AppendLine(" GROUP BY ");
-                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(col => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)))}");
+                query.AppendLine($" {string.Join(",", Options.GroupingColumns.Select(col => Dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)))}");
             }
 
             if (!Options.Count)
@@ -118,7 +118,7 @@ namespace Dapper.Builder.Services
                     if (Options.JsonPrimitive)
                     {
                         if (columns.Count() > 1) throw new ArgumentException("Json primitive support only one column");
-                        var forArrayJsonQuery = $@"select array_to_json(array_agg({dependencies.NamingStrategy.GetTableAndColumnName<TEntity>($"t.{columns.FirstOrDefault()}")})) from ( {query})  t";
+                        var forArrayJsonQuery = $@"select array_to_json(array_agg({Dependencies.NamingStrategy.GetTableAndColumnName<TEntity>($"t.{columns.FirstOrDefault()}")})) from ( {query})  t";
                         query = new StringBuilder(forArrayJsonQuery);
                     }
                     else
@@ -146,14 +146,14 @@ namespace Dapper.Builder.Services
         public override QueryResult GetInsertString(TEntity entity)
         {
             // processes!
-            entity = dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
+            entity = Dependencies.ProcessHandler.RunThroughProcessesForInsert(entity);
 
             // here should be implemented joins and select on insert
             StringBuilder query = new StringBuilder();
-            query.Append($"INSERT INTO {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
+            query.Append($"INSERT INTO {Dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             IEnumerable<string> columns = Options.SelectColumns.Any() ?
                                           Options.SelectColumns :
-                                          dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+                                          Dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
 
             int innerCount = Options.Parameters.Count + 1;
@@ -173,18 +173,18 @@ namespace Dapper.Builder.Services
         public override QueryResult GetUpdateString(TEntity entity)
         {
             // processes!
-            entity = dependencies.ProcessHandler.RunThroughProcessesForUpdate(entity);
+            entity = Dependencies.ProcessHandler.RunThroughProcessesForUpdate(entity);
 
             StringBuilder query = new StringBuilder();
-            query.Append($"UPDATE {dependencies.NamingStrategy.GetTableName<TEntity>()} ");
+            query.Append($"UPDATE {Dependencies.NamingStrategy.GetTableName<TEntity>()} ");
             int innerCount = Options.Parameters.Count + 1;
 
             IEnumerable<string> columns = Options.SelectColumns.Any() ?
                                           Options.SelectColumns :
-                                         dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
+                                         Dependencies.PropertyParser.Value.Parse<TEntity>(e => e);
             columns = columns.Where(col => !Options.ExcludeColumns.Any(ec => string.Equals(ec, col, StringComparison.OrdinalIgnoreCase)));
             query.AppendLine("SET ");
-            query.AppendLine(string.Join(", ", columns.Select(column => $"{dependencies.NamingStrategy.GetColumnName<TEntity>(column)} = { parameterBinding }{ innerCount++}")));
+            query.AppendLine(string.Join(", ", columns.Select(column => $"{Dependencies.NamingStrategy.GetColumnName<TEntity>(column)} = { parameterBinding }{ innerCount++}")));
 
             if (Options.JoinQueries.Any())
             {
@@ -215,7 +215,7 @@ namespace Dapper.Builder.Services
 
         public override IQueryBuilder<TEntity> Columns<U>(params string[] columns)
         {
-            Options.SelectColumns.AddRange(columns.Select(col => dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)));
+            Options.SelectColumns.AddRange(columns.Select(col => Dependencies.NamingStrategy.GetTableAndColumnName<TEntity>(col)));
             return this;
         }
 
