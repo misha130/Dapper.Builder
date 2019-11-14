@@ -348,6 +348,10 @@ namespace Dapper.Builder.Services
 
         protected virtual QueryResult IsParameter(int count, object value)
         {
+            if (typeof(Guid) == value.GetType())
+            {
+                value = value.ToString();
+            }
             return
             new QueryResult
             {
@@ -362,7 +366,14 @@ namespace Dapper.Builder.Services
             var sql = new StringBuilder("(");
             foreach (var value in values)
             {
-                parameters.Add((countStart).ToString(), value);
+                if (typeof(Guid) == value.GetType())
+                {
+                    parameters.Add((countStart).ToString(), value.ToString());
+                }
+                else
+                {
+                    parameters.Add((countStart).ToString(), value);
+                }
                 sql.Append($"{parameterBinding}{countStart},");
                 countStart++;
             }
