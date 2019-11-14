@@ -435,7 +435,7 @@ namespace Dapper.Builder
             query.AppendLine($"VALUES({string.Join(", ", columns.Select(p => $"@{Options.ParamCount++}"))});");
             return query;
         }
-        protected QueryResult GetQueryResult(TEntity entity, StringBuilder query, IEnumerable<string> columns)
+        protected virtual QueryResult GetQueryResult(TEntity entity, StringBuilder query, IEnumerable<string> columns)
         {
             Options.ParamCount = Options.Parameters.Count + 1;
             Options.Parameters.Merge(entity.ToDictionary(ref Options.ParamCount, columns));

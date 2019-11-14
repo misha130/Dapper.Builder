@@ -35,6 +35,7 @@ namespace Dapper.Builder.Extensions
                 });
             }
         }
+
         /// <summary>
         /// Lowers the first letter so the name becomes camel case i.e helloWorld
         /// </summary>
@@ -46,6 +47,7 @@ namespace Dapper.Builder.Extensions
             {
                 return char.ToLowerInvariant(str[0]) + str.Substring(1);
             }
+
             return str;
         }
 
@@ -59,10 +61,11 @@ namespace Dapper.Builder.Extensions
             return typeof(IEnumerable).IsAssignableFrom(type);
         }
 
-        public static Dictionary<string, object> ToDictionary<T>(this T obj, ref int id, IEnumerable<string> columns) where T : new()
+        public static Dictionary<string, object> ToDictionary<T>(this T obj, ref int id, IEnumerable<string> columns)
+            where T : new()
         {
             var dictionary = new Dictionary<string, object>();
-            int count = id;
+            var count = id;
             var properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (!columns.Any())
             {
@@ -72,11 +75,20 @@ namespace Dapper.Builder.Extensions
             {
                 foreach (var column in columns)
                 {
-                    var property = properties.FirstOrDefault(p => string.Equals(column, p.Name, StringComparison.CurrentCultureIgnoreCase));
+                    var property = properties.FirstOrDefault(p =>
+                        string.Equals(column, p.Name, StringComparison.CurrentCultureIgnoreCase));
                     if (property == null) continue;
-                    dictionary.Add((count++).ToString(), property.GetValue(obj, null));
+                    if (property.PropertyType == typeof(Guid))
+                    {
+                        dictionary.Add((count++).ToString(), property.GetValue(obj, null).ToString());
+                    }
+                    else
+                    {
+                        dictionary.Add((count++).ToString(), property.GetValue(obj, null));
+                    }
                 }
             }
+
             id = count;
             return dictionary;
         }
