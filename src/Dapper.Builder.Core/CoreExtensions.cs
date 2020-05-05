@@ -23,43 +23,43 @@ namespace Dapper.Builder.Core
         {
             #region Sub services
 
-            services.AddScoped<IDbConnection>(configuration.DbConnectionFactory);
+            services.AddTransient<IDbConnection>(configuration.DbConnectionFactory);
             switch (configuration?.DatabaseType)
             {
                 case DatabaseType.SQL:
                 default:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SqlQueryBuilder<>));
-                    services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
                     break;
                 case DatabaseType.SQLite:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SqliteQueryBuilder<>));
-                    services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
                     break;
                 case DatabaseType.PostgreSql:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(PostgreQueryBuilder<>));
-                    services.AddScoped(typeof(IFilterParser<>), typeof(PostgreFilterParser<>));
+                    services.AddTransient(typeof(IFilterParser<>), typeof(PostgreFilterParser<>));
                     break;
                 case DatabaseType.Snowflake:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SnowflakeQueryBuilder<>));
-                    services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
                     break;
             }
 
-            services.AddScoped(typeof(IJoinHandler), typeof(JoinHandler));
-            services.AddScoped(typeof(IPropertyParser), typeof(PropertyParser));
-            services.AddScoped(typeof(ISortHandler), typeof(SortHandler));
-            services.AddScoped(typeof(INamingStrategyService), typeof(NamingStrategyService));
-            services.AddScoped(typeof(IProcessHandler), typeof(ProcessHandler));
+            services.AddTransient(typeof(IJoinHandler), typeof(JoinHandler));
+            services.AddTransient(typeof(IPropertyParser), typeof(PropertyParser));
+            services.AddTransient(typeof(ISortHandler), typeof(SortHandler));
+            services.AddTransient(typeof(INamingStrategyService), typeof(NamingStrategyService));
+            services.AddTransient(typeof(IProcessHandler), typeof(ProcessHandler));
 
             #endregion
 
             #region Aggregation
 
-            services.AddScoped(typeof(Lazy<IJoinHandler>));
-            services.AddScoped(typeof(Lazy<IServiceProvider>));
-            services.AddScoped(typeof(Lazy<ISortHandler>));
-            services.AddScoped(typeof(Lazy<IPropertyParser>));
-            services.AddScoped(typeof(IQueryBuilderDependencies<>), typeof(CoreQueryBuilderDependencies<>));
+            services.AddTransient(typeof(Lazy<IJoinHandler>));
+            services.AddTransient(typeof(Lazy<IServiceProvider>));
+            services.AddTransient(typeof(Lazy<ISortHandler>));
+            services.AddTransient(typeof(Lazy<IPropertyParser>));
+            services.AddTransient(typeof(IQueryBuilderDependencies<>), typeof(CoreQueryBuilderDependencies<>));
 
             #endregion
 
@@ -83,7 +83,7 @@ namespace Dapper.Builder.Core
 
             #endregion
 
-            services.AddScoped<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
+            services.AddTransient<IBuilderConfiguration>((c) => configuration ?? new CoreBuilderConfiguration());
         }
     }
 }
