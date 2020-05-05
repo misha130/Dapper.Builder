@@ -277,6 +277,14 @@ namespace Dapper.Builder
         /// </summary>
         /// <returns></returns>
         IQueryBuilder<TEntity> CloneInstance();
+
+        /// <summary>
+        /// Direct access to the database connection
+        /// </summary>
+        /// <returns></returns>
+        IDbConnection GetContext();
+
+        Task<IEnumerable<UEntity>> ExecuteAsync<UEntity>();
     }
 
 }

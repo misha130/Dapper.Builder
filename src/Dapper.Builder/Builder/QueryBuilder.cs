@@ -384,8 +384,24 @@ namespace Dapper.Builder
             {
                 return await Dependencies.Context.QueryAsync<TEntity>(built.Query, built.Parameters);
             }
+        }
 
-
+        public virtual async Task<IEnumerable<UEntity>> ExecuteAsync<UEntity>()
+        {
+            var built = GetQueryString();
+            if (Options.Json)
+            {
+                var jsonResult = string.Join("", (await Dependencies.Context.QueryAsync<string>(built.Query, built.Parameters)).Where(j => j != null));
+                if (string.IsNullOrEmpty(jsonResult))
+                {
+                    return new List<UEntity>();
+                }
+                return JsonSerializer.Deserialize<UEntity[]>(jsonResult);
+            }
+            else
+            {
+                return await Dependencies.Context.QueryAsync<UEntity>(built.Query, built.Parameters);
+            }
         }
 
         public virtual IQueryBuilder<TEntity> Map(Func<IDbConnection, string, object, Task<IEnumerable<TEntity>>> action)
@@ -580,6 +596,11 @@ namespace Dapper.Builder
             (newBuilder as QueryBuilder<TEntity>).Options = Options.Clone();
 
             return newBuilder;
+        }
+
+        public IDbConnection GetContext()
+        {
+            return Dependencies.Context;
         }
     }
 
