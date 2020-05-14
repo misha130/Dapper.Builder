@@ -1,12 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac;
 using Dapper.Builder.Autofac;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
+using System;
 
 namespace Dapper.Builder.Tests.Services
 {
@@ -170,6 +169,17 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Where(a => a.FirstName.ToLower() == "Misha").GetQueryString();
             Assert.AreEqual(
                 string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = 'Misha')",
+                    queryString.Query,
+                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
+                , 0);
+        }
+
+        [TestMethod]
+        public void QueryFormatDate()
+        {
+            var queryString = queryBuilder.Where(a => a.CreatedDate.ToString("yyyy-MM-dd") == DateTime.Now.ToString("yyyy-MM-dd")).GetQueryString();
+            Assert.AreEqual(
+                string.Compare("SELECT * FROM [Users] WHERE ((Format([Users].[CreatedDate], 'yyyy-MM-dd')) = 'yyyy-MM-dd')",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);

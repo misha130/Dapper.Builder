@@ -1,4 +1,5 @@
 ﻿using Dapper.Builder.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace Dapper.Builder.Tests
@@ -13,6 +14,7 @@ namespace Dapper.Builder.Tests
         public string Email { get; set; }
         public bool Independent { get; set; }
         public string PasswordHash { get; set; }
+        public DateTime CreatedDate { get; set; }
         public IEnumerable<AssetMock> Assets { get; set; }
         public IEnumerable<ContractMock> Contracts { get; set; }
     }

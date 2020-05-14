@@ -111,6 +111,10 @@ namespace Dapper.Builder.Services {
                     var dateInfo = Recurse<UEntity> (ref i, methodCall.Object);
                     return new QueryResult ($"CAST ({ dateInfo.Query } as date)", dateInfo.Parameters);
                 }
+                if (methodCall.Method.Name == nameof(DateTime.ToString) && methodCall.Arguments.Count == 1)
+                {
+                    return Concat(IsSql("FORMAT"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", $"'{methodCall.Arguments[0]}')"));
+                }
                 if (methodCall.Method == typeof (DateTime).GetMethod ("ToString ", new [] { typeof (string) })) {
                     var concatDate = Concat (Recurse<UEntity> (ref i, methodCall.Object), ", ", Recurse<UEntity> (ref i, methodCall.Arguments[0]));
                     return new QueryResult ($"TO_DATE ({ concatDate.Query })", concatDate.Parameters);
