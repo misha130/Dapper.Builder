@@ -219,7 +219,7 @@ namespace Dapper.Builder.Services
                     var values = (IEnumerable)GetValue(collection);
                     return Concat(Recurse<UEntity>(ref i, property), " IN ", IsCollection(ref i, values));
                 }
-                if (methodCall.Method == typeof(DateTime).GetMethod("ToString") && methodCall.Arguments.Count == 1)
+                if (methodCall.Method == typeof(DateTime).GetMethod("ToString", new[] { typeof(string) }) && methodCall.Arguments.Count == 1)
                 {
                     return Concat(IsSql("to_date"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", $"'{methodCall.Arguments[0]}')"));
                 }
