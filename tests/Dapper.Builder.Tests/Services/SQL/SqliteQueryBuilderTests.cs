@@ -418,7 +418,7 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.ExcludeColumns(user => new
                 {
                     user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
-                    user.Picture
+                    user.Picture, user.CreatedDate
                 })
                 .GetUpdateString(userMock);
             Assert.AreEqual(
@@ -435,7 +435,7 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.ExcludeColumns(user => new
                 {
                     user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
-                    user.Picture
+                    user.Picture, user.CreatedDate
                 })
                 .GetInsertString(userMock);
             Assert.AreEqual(
@@ -474,6 +474,7 @@ namespace Dapper.Builder.Tests.Services
                     user.LastName,
                     user.Independent,
                     user.Picture,
+                    user.CreatedDate,
                     user.Id
                 })
                 .GetQueryString();

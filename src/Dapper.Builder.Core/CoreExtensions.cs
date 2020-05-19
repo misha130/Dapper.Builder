@@ -30,25 +30,28 @@ namespace Dapper.Builder.Core
                 default:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SqlQueryBuilder<>));
                     services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(INamingStrategyService), typeof(NamingStrategyService));
                     break;
                 case DatabaseType.SQLite:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SqliteQueryBuilder<>));
                     services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(INamingStrategyService), typeof(NamingStrategyService));
                     break;
                 case DatabaseType.PostgreSql:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(PostgreQueryBuilder<>));
                     services.AddTransient(typeof(IFilterParser<>), typeof(PostgreFilterParser<>));
+                    services.AddTransient(typeof(INamingStrategyService), typeof(PostgreNamingStrategyService));
                     break;
                 case DatabaseType.Snowflake:
                     services.AddTransient(typeof(IQueryBuilder<>), typeof(SnowflakeQueryBuilder<>));
                     services.AddTransient(typeof(IFilterParser<>), typeof(FilterParser<>));
+                    services.AddTransient(typeof(INamingStrategyService), typeof(NamingStrategyService));
                     break;
             }
 
             services.AddTransient(typeof(IJoinHandler), typeof(JoinHandler));
             services.AddTransient(typeof(IPropertyParser), typeof(PropertyParser));
             services.AddTransient(typeof(ISortHandler), typeof(SortHandler));
-            services.AddTransient(typeof(INamingStrategyService), typeof(NamingStrategyService));
             services.AddTransient(typeof(IProcessHandler), typeof(ProcessHandler));
 
             #endregion

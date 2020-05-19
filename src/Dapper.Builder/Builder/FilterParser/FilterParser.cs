@@ -219,9 +219,20 @@ namespace Dapper.Builder.Services
                     var values = (IEnumerable)GetValue(collection);
                     return Concat(Recurse<UEntity>(ref i, property), " IN ", IsCollection(ref i, values));
                 }
-                if (methodCall.Method == typeof(DateTime).GetMethod("ToString", new[] { typeof(string) }) && methodCall.Arguments.Count == 1)
+                if (methodCall.Method.Name == nameof(DateTime.ToString))
                 {
-                    return Concat(IsSql("to_date"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", $"'{methodCall.Arguments[0]}')"));
+                    var toString = Recurse<UEntity>(ref i, methodCall.Object, false, "(", ")");
+                    return new QueryResult($"({ toString.Query })", toString.Parameters);
+                }
+                if (methodCall.Method == typeof(DateTime).GetMethod("ToShortDateString"))
+                {
+                    var dateInfo = Recurse<UEntity>(ref i, methodCall.Object);
+                    return new QueryResult($"CAST ({ dateInfo.Query } as date)", dateInfo.Parameters);
+                }
+                if ((methodCall.Method == typeof(DateTime).GetMethod("ToString", new[] { typeof(string) })
+                    || methodCall.Method == typeof(DateTime?).GetMethod("ToString", new[] { typeof(string) })) && methodCall.Arguments.Count == 1)
+                {
+                    return Concat(IsSql("FORMAT"), string.Empty, Recurse<UEntity>(ref i, methodCall.Object, false, "(", $"'{methodCall.Arguments[0]}')"));
                 }
                 if (methodCall.Method.Name == nameof(string.ToLower)
                     || methodCall.Method.Name == nameof(string.ToLowerInvariant))
@@ -277,7 +288,7 @@ namespace Dapper.Builder.Services
             return getter();
         }
 
-        protected static string NodeTypeToString(ExpressionType nodeType)
+        protected virtual string NodeTypeToString(ExpressionType nodeType)
         {
             var @operator = string.Empty;
             switch (nodeType)

@@ -19,25 +19,25 @@ namespace Dapper.Builder.Services
                 {
                     if (splitted.Last() == prop)
                     {
-                        manipulatedProperty += $".\"{prop.ToCamelCase()}\"";
+                        manipulatedProperty += prop;
                     }
                     else
                     {
-                        manipulatedProperty += $"\"{prop}\"";
+                        manipulatedProperty += prop;
                     }
 
                 }
 
                 return manipulatedProperty;
             };
-            return $"{alias ?? GetTableName<TEntity>()}.\"{property.ToCamelCase()}\"";
+            return $"{alias ?? GetTableName<TEntity>()}.{property}";
         }
 
         public string GetColumnName<TEntity>(string property, string alias = null)
       where TEntity : new()
         {
             if (property.Contains(".")) return property;
-            return alias ?? $"\"{property}\"";
+            return alias ?? property;
         }
 
 
@@ -62,7 +62,7 @@ namespace Dapper.Builder.Services
 
         public virtual string GetTableName(string name)
         {
-            return $"\"{name}]\"";
+            return $"\"{name}\"";
         }
     }
 }

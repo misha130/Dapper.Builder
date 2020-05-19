@@ -1,19 +1,20 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac;
 using Dapper.Builder.Autofac;
+using Dapper.Builder.Services;
 using Microsoft.Data.SqlClient;
-using System;
+using Npgsql;
 
 namespace Dapper.Builder.Tests.Services
 {
     [TestClass]
-    public class SqlQueryBuilderTests : BaseTest
+    public class PostgreQueryBuilderTests : BaseTest
     {
-        private static IQueryBuilder<UserMock> queryBuilder;
-        //private TestContext TestContext { get; set; }
+        private IQueryBuilder<UserMock> queryBuilder;
 
         [TestInitialize]
         public void Init()
@@ -21,8 +22,8 @@ namespace Dapper.Builder.Tests.Services
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule(new DapperBuilderModule(new AutofacBuilderConfiguration
             {
-                DatabaseType = DatabaseType.SQL,
-                DbConnectionFactory = (ser) => new SqlConnection("server=(local)")
+                DatabaseType = DatabaseType.PostgreSql,
+                DbConnectionFactory = (ser) => new NpgsqlConnection("Host=localhost;")
             }));
             Container = containerBuilder.Build();
             queryBuilder = Container.Resolve<IQueryBuilder<UserMock>>();
@@ -32,7 +33,7 @@ namespace Dapper.Builder.Tests.Services
         public void AllQuery()
         {
             var queryString = queryBuilder.GetQueryString();
-            Assert.AreEqual("SELECT * FROM [Users]".Trim(), queryString.Query.Trim());
+            Assert.AreEqual(@"SELECT * FROM ""Users""".Trim(), queryString.Query.Trim());
         }
 
         [TestMethod]
@@ -41,7 +42,7 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Top(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT TOP 5 * FROM [Users]",
+                    @"SELECT * FROM ""Users"" LIMIT 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -53,7 +54,7 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Top(5).Skip(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT * FROM [Users] OFFSET 5 ROWS FETCH NEXT 5 ROWS ONLY;",
+                    @"SELECT * FROM ""Users"" LIMIT 5 OFFSET 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -65,24 +66,25 @@ namespace Dapper.Builder.Tests.Services
             var queryString = queryBuilder.Skip(5).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT * FROM [Users] OFFSET 5 ROWS",
+                    @"SELECT * FROM ""Users"" LIMIT -1 OFFSET 5",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
 
+
         [TestMethod]
         public void AllQuerySingleColumnByExpression()
         {
             var queryString = queryBuilder.Columns(tc => tc.Id).GetQueryString();
-            Assert.AreEqual("SELECT [Users].[Id] FROM [Users]".Trim().ToLower(), queryString.Query.Trim().ToLower());
+            Assert.AreEqual(@"SELECT ""Users"".id FROM ""Users""".Trim().ToLower(), queryString.Query.Trim().ToLower());
         }
 
         [TestMethod]
         public void AllQuerySingleColumnByString()
         {
             var queryString = queryBuilder.Columns(nameof(UserMock.Id)).GetQueryString();
-            Assert.AreEqual("SELECT [Users].[Id] FROM [Users]".Trim().ToLower(), queryString.Query.Trim().ToLower());
+            Assert.AreEqual(@"SELECT ""Users"".Id FROM ""Users""".Trim().ToLower(), queryString.Query.Trim().ToLower());
         }
 
         [TestMethod]
@@ -90,7 +92,7 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where((c) => 1 == 1).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE (@1 = 1)",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (:1 = 1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -100,24 +102,24 @@ namespace Dapper.Builder.Tests.Services
         public void QueryWithStringConstant()
         {
             var queryString = queryBuilder.Where((c) => c.Email == "misha130@gmail.com").GetQueryString();
-            Debug.WriteLine(queryString.Query);
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[Email] = 'misha130@gmail.com')".Trim().ToLower(),
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".Email = :1)".Trim().ToLower(),
                     queryString.Query.Trim().ToLower(),
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("misha130@gmail.com", queryString.Parameters["1"]);
         }
-
 
         [TestMethod]
         public void QuerySingleColumnById()
         {
             var queryString = queryBuilder.Where(tc => tc.Id == 1).Columns(tc => tc.Id).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT [Users].[Id] FROM [Users] WHERE ([Users].[Id] = @1)",
+                string.Compare(@"SELECT ""Users"".Id FROM ""Users"" WHERE (""Users"".Id = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("1", queryString.Parameters["1"].ToString());
         }
 
         [TestMethod]
@@ -125,24 +127,26 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Columns(tc => tc.Id).Where(tc => tc.Email == null).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT [Users].[Id] FROM [Users] WHERE ([Users].[Email] is null)",
+                string.Compare(@"SELECT ""Users"".Id FROM ""Users"" WHERE (""Users"".Email is null)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
         }
 
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public void QueryArrayIndexWhere()
         {
             var sampleText = "something_something".Split('_');
             var queryString = queryBuilder.Where(a => a.FirstName == sampleText[0] && a.LastName == sampleText[1])
                 .GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE (([Users].[FirstName]) = @1 and ([Users].[LastName] = @2))",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE ((""Users"".FirstName) = :1 and (""Users"".LastName = :2))",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("something", queryString.Parameters["1"]);
+            Assert.AreEqual("something", queryString.Parameters["2"]);
         }
 
         [TestMethod]
@@ -153,10 +157,10 @@ namespace Dapper.Builder.Tests.Services
                 .Where<ContractMock, AssetMock>((c, a, u) => c.UserId == a.UserId).GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    @"SELECT * FROM [Users]
-                          INNER JOIN [Contracts] ON ([Contracts].[UserId] = [Users].[Id])
-                          INNER JOIN [Assets] ON ([Assets].[UserId] = [Users].[Id])
-                          WHERE ([Contracts].[UserId] = [Assets].[UserId])",
+                    @"SELECT * FROM ""Users""
+                          INNER JOIN ""Contracts"" ON (""Contracts"".UserId = ""Users"".Id)
+                          INNER JOIN ""Assets"" ON (""Assets"".UserId = ""Users"".Id)
+                          WHERE (""Contracts"".UserId = ""Assets"".UserId)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -168,21 +172,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLower() == "Misha").GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = 'Misha')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (LOWER(""Users"".FirstName) = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
-        }
-
-        [TestMethod]
-        public void QueryFormatDate()
-        {
-            var queryString = queryBuilder.Where(a => a.CreatedDate.ToShortDateString() == DateTime.Now.ToShortDateString()).GetQueryString();
-            Assert.AreEqual(
-                string.Compare($"SELECT * FROM [Users] WHERE (CAST([Users].[CreatedDate] as date) = (cast @1 as date))",
-                    queryString.Query,
-                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                , 0);
+            Assert.AreEqual("Misha", queryString.Parameters["1"]);
         }
 
         //[TestMethod, Ignore]
@@ -202,10 +196,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToLowerInvariant() == "Misha").GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ((LOWER([Users].[FirstName])) = 'Misha')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (LOWER(""Users"".FirstName) = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("Misha", queryString.Parameters["1"]);
         }
 
         [TestMethod]
@@ -213,10 +208,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToUpperInvariant() == "Misha").GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = 'Misha')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (UPPER(""Users"".FirstName) = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("Misha", queryString.Parameters["1"]);
         }
 
         [TestMethod]
@@ -224,10 +220,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.ToUpper() == "Misha").GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ((UPPER([Users].[FirstName])) = 'Misha')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (UPPER(""Users"".FirstName) = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("Misha", queryString.Parameters["1"]);
         }
 
         [TestMethod]
@@ -235,22 +232,23 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Count().Where(a => a.Independent).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT COUNT(*) FROM [Users] WHERE ([Users].[Independent] = @1)",
+                string.Compare(@"SELECT COUNT(*) FROM ""Users"" WHERE (""Users"".Independent = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual(true, queryString.Parameters["1"]);
         }
-
 
         [TestMethod]
         public void QueryStartsWith()
         {
             var queryString = queryBuilder.Where(a => a.FirstName.StartsWith("M")).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE 'M%')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".FirstName LIKE :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("M%", queryString.Parameters["1"]);
         }
 
         [TestMethod]
@@ -258,10 +256,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.EndsWith("M")).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE '%M')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".FirstName LIKE :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("%M", queryString.Parameters["1"]);
         }
 
         [TestMethod]
@@ -269,10 +268,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.FirstName.Contains("M")).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[FirstName] LIKE '%M%')",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".FirstName LIKE :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual("%M%", queryString.Parameters["1"]);
         }
 
         //[TestMethod, Description("lmao it doesn't actually work, you have to do == false/true")]
@@ -304,10 +304,11 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.Independent == true).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".Independent = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual(true, queryString.Parameters["1"]);
         }
 
         [TestMethod()]
@@ -315,19 +316,20 @@ namespace Dapper.Builder.Tests.Services
         {
             var queryString = queryBuilder.Where(a => a.Independent == false).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[Independent] = @1)",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".Independent = :1)",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
+            Assert.AreEqual(false, queryString.Parameters["1"]);
         }
 
         [TestMethod]
         public void QueryListContains()
         {
-            var ids = new List<long> { 1, 2, 3 };
+            var ids = new List<long> {1, 2, 3};
             var queryString = queryBuilder.Where(a => ids.Contains(a.Id)).GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT * FROM [Users] WHERE ([Users].[Id] IN (@1,@2,@3))",
+                string.Compare(@"SELECT * FROM ""Users"" WHERE (""Users"".Id IN (:1,:2,:3))",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -335,24 +337,9 @@ namespace Dapper.Builder.Tests.Services
             {
                 Assert.AreEqual(id, queryString.Parameters[id.ToString()]);
             }
-        }
-
-        [TestMethod]
-        public void QueryDoubleSubQuery()
-        {
-            var queryString = queryBuilder
-                .SubQuery<AssetMock>(qb => qb.Where<UserMock>((asset, user) => asset.UserId == user.Id).Json(),
-                    nameof(UserMock.Assets))
-                .SubQuery<ContractMock>(qb => qb.Where<UserMock>((contract, user) => contract.UserId == user.Id).Json(),
-                    nameof(UserMock.Contracts))
-                .GetQueryString();
-
-            Assert.AreEqual(
-                string.Compare(
-                    "SELECT * , (SELECT * FROM [Assets] WHERE ([Assets].[UserId] = [Users].[Id]) FOR JSON PATH ) as Assets , (SELECT * FROM [Contracts] WHERE ([Contracts].[UserId] = [Users].[Id]) FOR JSON PATH ) as Contracts  FROM [Users]",
-                    queryString.Query,
-                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                , 0);
+            Assert.AreEqual(1l, queryString.Parameters["1"]); ;
+            Assert.AreEqual(2l, queryString.Parameters["2"]);
+            Assert.AreEqual(3l, queryString.Parameters["3"]);
         }
 
         [TestMethod]
@@ -367,26 +354,28 @@ namespace Dapper.Builder.Tests.Services
                     new UserMock
                     {
                         FirstName = "Misha",
-                        LastName = "Tarnortusky",
+                        LastName = "Trotsky",
                         Independent = true,
                         Email = "Misha130@gmail.com"
                     });
             Assert.AreEqual(
                 string.Compare(
-                    "UPDATE [Users] SET [Users].[Email] = @2, [Users].[Independent] = @3, [Users].[FirstName] = @4, [Users].[LastName] = @5 WHERE ([Users].[Id] = @1)",
+                    @"UPDATE ""Users"" SET Email = :2, Independent = :3, FirstName = :4, LastName = :5
+                    WHERE (""Users"".Id = :1)
+                    RETURNING Id",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
-            Assert.IsTrue((long)queryString.Parameters["1"] == 1);
-            Assert.IsTrue((string)queryString.Parameters["2"] == "Misha130@gmail.com");
-            Assert.IsTrue((bool)queryString.Parameters["3"] == true);
+            Assert.IsTrue((long) queryString.Parameters["1"] == 1);
+            Assert.IsTrue((string) queryString.Parameters["2"] == "Misha130@gmail.com");
+            Assert.IsTrue((bool) queryString.Parameters["3"] == true);
         }
 
         [TestMethod]
         public void InsertWithEnum()
         {
             IQueryBuilder<Component> queryBuilderComp = Resolve<IQueryBuilder<Component>>();
-            var guid = System.Guid.NewGuid().ToString();
+            var guid = Guid.NewGuid().ToString();
             var queryString = queryBuilderComp.GetInsertString(new Component
             {
                 ComponentType = ComponentType.Complicated,
@@ -395,13 +384,14 @@ namespace Dapper.Builder.Tests.Services
             });
             Assert.AreEqual(
                 string.Compare(
-                    "INSERT INTO [Components] ([Components].[ComponentType], [Components].[Name], [Components].[Url]) VALUES (@1, @2, @3);SELECT @@IDENTITY from [Components]",
+                    @"INSERT INTO ""Components"" (ComponentType, Name, Url) VALUES (:1, :2, :3)
+                    RETURNING  Id",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
-            Assert.IsTrue((ComponentType)queryString.Parameters["1"] == ComponentType.Complicated);
-            Assert.IsTrue((string)queryString.Parameters["2"] == "Component Name");
-            Assert.IsTrue((string)queryString.Parameters["3"] == guid);
+            Assert.IsTrue((ComponentType) queryString.Parameters["1"] == ComponentType.Complicated);
+            Assert.IsTrue((string) queryString.Parameters["2"] == "Component Name");
+            Assert.IsTrue((string) queryString.Parameters["3"] == guid);
         }
 
 
@@ -413,11 +403,12 @@ namespace Dapper.Builder.Tests.Services
                 .GetQueryString();
             Assert.AreEqual(
                 string.Compare(
-                    "SELECT * FROM [Users] WHERE (LOWER(([Users].[FirstName] + '_') + [Users].[LastName]) = LOWER(@1))",
+                    @"SELECT * FROM ""Users"" WHERE (LOWER(((""Users"".FirstName || :1) || ""Users"".LastName)) = LOWER(:2))",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
-            Assert.AreEqual(testName, queryString.Parameters["1"]);
+            Assert.AreEqual("_", queryString.Parameters["1"]);
+            Assert.AreEqual(testName, queryString.Parameters["2"]);
         }
 
         [TestMethod]
@@ -425,19 +416,13 @@ namespace Dapper.Builder.Tests.Services
         {
             var userMock = new UserMock();
             var queryString = queryBuilder.ExcludeColumns(user => new
-            {
-                user.PasswordHash,
-                user.Assets,
-                user.Contracts,
-                user.FirstName,
-                user.LastName,
-                user.Independent,
-                user.Picture,
-                user.CreatedDate
-            })
+                {
+                    user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
+                    user.Picture, user.CreatedDate
+                })
                 .GetUpdateString(userMock);
             Assert.AreEqual(
-                string.Compare("UPDATE [Users] SET [Users].[Email] = @1",
+                string.Compare(@"UPDATE ""Users"" SET Email = :1 RETURNING Id",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -446,21 +431,15 @@ namespace Dapper.Builder.Tests.Services
         [TestMethod]
         public void InsertWithExcludeColumns()
         {
-            var userMock = new UserMock() { };
+            var userMock = new UserMock();
             var queryString = queryBuilder.ExcludeColumns(user => new
-            {
-                user.PasswordHash,
-                user.Assets,
-                user.Contracts,
-                user.FirstName,
-                user.CreatedDate,
-                user.LastName,
-                user.Independent,
-                user.Picture
-            })
+                {
+                    user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
+                    user.Picture, user.CreatedDate
+                })
                 .GetInsertString(userMock);
             Assert.AreEqual(
-                string.Compare("INSERT INTO [USERS] ([Users].[Email]) VALUES(@1);SELECT @@IDENTITY from [Users]",
+                string.Compare(@"INSERT INTO ""USERS"" (Email) VALUES(:1) RETURNING Id",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -470,32 +449,13 @@ namespace Dapper.Builder.Tests.Services
         public void SelectWithColumnsAndExclude()
         {
             var queryString = queryBuilder.Columns(c => c.Email).ExcludeColumns(user => new
-            {
-                user.PasswordHash,
-                user.Assets,
-                user.Contracts,
-                user.FirstName,
-                user.LastName,
-                user.Independent,
-                user.Picture
-            })
+                {
+                    user.PasswordHash, user.Assets, user.Contracts, user.FirstName, user.LastName, user.Independent,
+                    user.Picture
+                })
                 .GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT [Users].[Email] From [Users]",
-                    queryString.Query,
-                    CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
-                , 0);
-        }
-
-        [TestMethod]
-        public void InsertQueryWithReturnColumn()
-        {
-            var userMock = new UserMock();
-
-            var queryString = queryBuilder.GetInsertString(userMock, um => um.Id);
-            Assert.AreEqual(
-                string.Compare(
-                    "INSERT INTO [Users] ([Users].[CreatedDate], [Users].[Email], [Users].[FirstName], [Users].[Independent], [Users].[LastName], [Users].[PasswordHash], [Users].[Picture])OUTPUT INSERTED.Id VALUES(@1, @2, @3, @4, @5, @6, @7); ",
+                string.Compare(@"SELECT ""Users"".Email From ""Users""",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);
@@ -509,17 +469,17 @@ namespace Dapper.Builder.Tests.Services
                 {
                     user.PasswordHash,
                     user.Assets,
-                    user.CreatedDate,
                     user.Contracts,
                     user.FirstName,
                     user.LastName,
                     user.Independent,
                     user.Picture,
+                    user.CreatedDate,
                     user.Id
                 })
                 .GetQueryString();
             Assert.AreEqual(
-                string.Compare("SELECT [Users].[Email] From [Users]",
+                string.Compare(@"SELECT ""Users"".Email From ""Users""",
                     queryString.Query,
                     CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols)
                 , 0);

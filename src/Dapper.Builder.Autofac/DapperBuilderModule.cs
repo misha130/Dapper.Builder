@@ -30,30 +30,33 @@ namespace Dapper.Builder.Autofac
                     builder.RegisterGeneric(typeof(SqlQueryBuilder<>)).As(typeof(IQueryBuilder<>))
                         .InstancePerDependency();
                     builder.RegisterGeneric(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
+                    builder.RegisterType<NamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
                     break;
                 case DatabaseType.PostgreSql:
                     builder.RegisterGeneric(typeof(PostgreQueryBuilder<>)).As(typeof(IQueryBuilder<>))
                         .InstancePerDependency();
                     builder.RegisterGeneric(typeof(PostgreFilterParser<>)).As(typeof(IFilterParser<>))
                         .InstancePerDependency();
+                    builder.RegisterType<PostgreNamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
                     break;
                 case DatabaseType.SQLite:
                     builder.RegisterGeneric(typeof(SqliteQueryBuilder<>)).As(typeof(IQueryBuilder<>))
                         .InstancePerDependency();
                     builder.RegisterGeneric(typeof(FilterParser<>)).As(typeof(IFilterParser<>))
                         .InstancePerDependency();
+                    builder.RegisterType<NamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
                     break;
                 case DatabaseType.Snowflake:
                     builder.RegisterGeneric(typeof(SnowflakeQueryBuilder<>)).As(typeof(IQueryBuilder<>))
                         .InstancePerDependency();
                     builder.RegisterGeneric(typeof(FilterParser<>)).As(typeof(IFilterParser<>)).InstancePerDependency();
+                    builder.RegisterType<NamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
                     break;
             }
 
             builder.RegisterType<JoinHandler>().As<IJoinHandler>().InstancePerLifetimeScope();
             builder.RegisterType<PropertyParser>().As<IPropertyParser>().InstancePerLifetimeScope();
             builder.RegisterType<SortHandler>().As<ISortHandler>().InstancePerLifetimeScope();
-            builder.RegisterType<NamingStrategyService>().As<INamingStrategyService>().InstancePerLifetimeScope();
             builder.RegisterType<ProcessHandler>().As<IProcessHandler>().InstancePerLifetimeScope();
 
             #endregion

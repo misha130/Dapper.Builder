@@ -109,8 +109,15 @@ namespace Dapper.Builder.Services
 
                 if (Options.Top.HasValue)
                 {
-                    query.AppendLine($"OFFSET {Options.Skip ?? 0} ROWS");
-                    query.AppendLine($"FETCH FIRST {Options.Top.Value} ROWS ONLY");
+                    query.AppendLine($"LIMIT {Options.Top.Value}");
+                    if (Options.Skip.HasValue)
+                    {
+                        query.AppendLine($"OFFSET {Options.Skip ?? 0}");
+                    }
+                }
+                else if (Options.Skip.HasValue)
+                {
+                    query.AppendLine($"LIMIT -1 OFFSET {Options.Skip}");
                 }
 
                 if (Options.Json)
